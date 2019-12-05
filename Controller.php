@@ -306,14 +306,13 @@ class Controller
     {            
         // try from reutes db table
         $route = $request->getAttribute('route');  
-        $pageName = null;
         if ((is_object($route) == true) && ($this->has('routes') == true)) {
             $pattern = $route->getPattern();          
-            $model = $this->get('routes')->getRoute('GET',$pattern);            
-            $pageName = (is_object($model) == false) ? null : $model->getPageName();             
+            $routeData = $this->get('routes')->getRoute('GET',$pattern);            
+            return (is_array($routeData) == true) ? $routeData['page_name'] : null;             
         } 
 
-        return $pageName;
+        return null;
     }
 
     /**
