@@ -12,37 +12,39 @@ namespace Arikaim\Core\Controllers\Traits;
 use Arikaim\Core\Db\Model;
 
 /**
- * Set status trait
+ * Delete trait
 */
-trait Status 
+trait Delete 
 {        
     /**
-     * Set status
+     * Delete model
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param Validator $data
      * @return Psr\Http\Message\ResponseInterface
      */
-    public function setStatus($request, $response, $data)
+    public function delete($request, $response, $data)
     {
         $this->requireControlPanelPermission();
 
-        $this->onDataValid(function($data) {
-            $status = $data->get('status',1);                
+        $this->onDataValid(function($data) {                  
             $uuid = $data->get('uuid');
             $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-            $result = (is_object($model) == true) ? $model->setStatus($status) : false; 
+            
+            if (is_object($model) == true) {
+                $result = $model->delete($status);
+            }
+            $result = ($result !== false);
         
-            $this->setResponse($result,function() use($uuid,$status) {              
+            $this->setResponse($result,function() use($uuid) {              
                 $this
-                    ->message('status')
-                    ->field('uuid',$uuid)
-                    ->field('status',$status);
-            },'errors.status');
+                    ->message('delete')
+                    ->field('uuid',$uuid);                  
+            },'errors.delete');
         });
         $data
-            ->addRule('checkList:items=0,1,toggle','status')
+            ->addRule('text:min=2|required','uuid')           
             ->validate(); 
 
         return $this->getResponse();
