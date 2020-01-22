@@ -200,7 +200,7 @@ class Controller
                 $this->loadRoute($arguments[0]);
 
                 $callable($arguments[0],$arguments[1],$arguments[2]);
-                $result = $this->load($arguments[0],$arguments[1],$arguments[2],$this->getPageName()); 
+                $result = $this->pageLoad($arguments[0],$arguments[1],$arguments[2],$this->getPageName()); 
                 
                 return ($result === false) ? $this->pageNotFound($arguments[1],$arguments[2]) : $result;                 
             };
@@ -388,7 +388,7 @@ class Controller
      * @param string|null $name Page name  
      * @return Psr\Http\Message\ResponseInterface
     */
-    public function load($request, $response, $data, $pageName = null)
+    public function pageLoad($request, $response, $data, $pageName = null)
     {       
         $language = $this->getPageLanguage($data);
         
