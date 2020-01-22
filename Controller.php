@@ -464,7 +464,7 @@ class Controller
      * @param array $data
      * @return Psr\Http\Message\ResponseInterface
      */
-    public function systemErrorPage($response, $data = [])
+    public function pageSystemError($response, $data = [])
     {     
         $language = $this->getPageLanguage($data);
 
