@@ -25,8 +25,8 @@ trait AccessToken
      */
     public function createProtectedUrl($userId, $pattern)
     {
-        $accessToken = $this->get('access')->provider('token')->createToken($userId);   
+        $accessToken = $this->get('access')->withProvider('token')->createToken($userId);   
 
-        return (is_object($accessToken) == true) ? Url::BASE_URL . '/' . $pattern . '/' . $accessToken->token : false;
+        return (is_array($accessToken) == true) ? Url::BASE_URL . '/' . $pattern . '/' . $accessToken['token'] : false;
     }
 }
