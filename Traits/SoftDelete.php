@@ -31,6 +31,12 @@ trait SoftDelete
         $this->onDataValid(function($data) {                  
             $uuid = $data->get('uuid');
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
+            if (is_object($model) == false) {
+                $this->error('Not valid model class or extensio nname');
+                return;
+            }
+            $model = $model->findById($uuid);
+
             $result = (is_object($model) == false) ? false : $model->softDelete();
               
             $this->setResponse($result,function() use($uuid) {              
@@ -59,6 +65,12 @@ trait SoftDelete
         $this->onDataValid(function($data) {                  
             $uuid = $data->get('uuid');
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
+            if (is_object($model) == false) {
+                $this->error('Not valid model class or extensio nname');
+                return;
+            }
+            $model = $model->findById($uuid);
+            
             $result = (is_object($model) == false) ? false : $model->restore();
             
             $this->setResponse($result,function() use($uuid) {              
