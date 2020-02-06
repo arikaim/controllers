@@ -17,7 +17,17 @@ use Arikaim\Core\Utils\Path;
 trait FileUpload 
 {        
     /**
-     * Soft delete model
+     * Get field name
+     *
+     * @return string
+     */
+    public function getUplaodFieldName()
+    {
+        return (isset($this->uploadFiledName) == true) ? $this->uploadFiledName : 'file';
+    }
+
+    /**
+     * File upload
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
@@ -29,29 +39,44 @@ trait FileUpload
         $this->requireControlPanelPermission();
 
         $this->onDataValid(function($data) use ($request) {                
-            $files = $request->getUploadedFiles();
-
-            if (isset($files['file']) == true) {
-                $file = $files['file'];
-            } else {
-                $this->error('errors.upload');
-                return;
-            }
-
-            $result = false;
-            if ($file->getError() === UPLOAD_ERR_OK) {
-                $path = Path::STORAGE_PATH . $data->get('path','');
-                $fileName = $path . $file->getClientFilename();
-                $file->moveTo($fileName);
-                $result = $file->isMoved();
-            }
+            $destinationPath = $data->get('path','');
+            $files = $this->uploadFiles($request,$destinationPath);
                
-            $this->setResponse($result,function() use($file) {                  
+            $this->setResponse(is_array($files),function() use($files) {                  
                 $this
                     ->message('upload')
-                    ->field('file_name',$file->getClientFilename());                                  
+                    ->field('files',$files);                                  
             },'errors.upload');           
         });
         $data->validate();          
+    }
+
+    /**
+     * Upload file(s)
+     *
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param string $path Destinatin path relative to storage path
+     * @param boolean $relative
+     * @return array
+     */
+    public function uploadFiles($request, $path = '', $relative = true)
+    {
+        $fieldName = $this->getUplaodFieldName();
+        $files = $request->getUploadedFiles();
+        $destinationPath = ($relative == true) ? Path::STORAGE_PATH . $path : $path;
+    
+        $result = [];
+        foreach ($files[$fieldName] as $file) {
+            if ($file->getError() === UPLOAD_ERR_OK) {                   
+                $fileName = $destinationPath . $file->getClientFilename();
+                $file->moveTo($fileName);         
+            }
+            $result[] = [
+                'name'  => $file->getClientFilename(),
+                'error' => ($file->isMoved() == false) ? $file->getError() : false
+            ];
+        }
+
+        return $result;
     }
 }

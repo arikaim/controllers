@@ -396,7 +396,6 @@ class Controller
             $pageName = (isset($data['page_name']) == true) ? $data['page_name'] : $this->resolveRouteParam($request);
         } 
         
-        
         $data = (is_object($data) == true) ? $data->toArray() : $data;
         if (empty($pageName) == true) {
             return $this->get('errors')->loadPageNotFound($response,$data,$language);    
