@@ -65,10 +65,12 @@ trait FileUpload
         $files = $request->getUploadedFiles();
         $destinationPath = ($relative == true) ? Path::STORAGE_PATH . $path : $path;
     
+        $uploadedFiles = (is_object($files[$fieldName]) == true) ? [$files[$fieldName]] : $files[$fieldName];
+    
         $result = [];
-        foreach ($files[$fieldName] as $file) {
+        foreach ($uploadedFiles as $file) {
             if ($file->getError() === UPLOAD_ERR_OK) {                   
-                $fileName = $destinationPath . $file->getClientFilename();
+                $fileName = $destinationPath . $file->getClientFilename();              
                 $file->moveTo($fileName);         
             }
             $result[] = [
