@@ -14,13 +14,13 @@ namespace Arikaim\Core\Controllers\Traits;
 */
 trait Captcha 
 {        
-     /**
+    /**
      * Verify captcha
      *   
      * @param \Psr\Http\Message\ServerRequestInterface $request    
      * @param Validator $data
      * @return boolean
-     */
+    */
     public function verifyCaptcha($request, $data)
     {
         $current = $this->get('options')->get('captcha.current');

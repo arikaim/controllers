@@ -200,7 +200,7 @@ class Controller
                 $this->loadRoute($arguments[0]);
 
                 $callable($arguments[0],$arguments[1],$arguments[2]);
-                $result = $this->pageLoad($arguments[0],$arguments[1],$arguments[2],$this->getPageName()); 
+                $result = $this->pageLoad($arguments[0],$arguments[1],$arguments[2],$this->getPageName(),false); 
                 
                 return ($result === false) ? $this->pageNotFound($arguments[1],$arguments[2]) : $result;                 
             };
@@ -221,7 +221,7 @@ class Controller
         }
         $pattern = $request->getAttribute('route')->getPattern();
         $route = $this->get('routes')->getRoute('GET',$pattern);
-        if ($route != false){
+        if ($route != false) {
             // set route params
             $this->page = $route['page_name'];
             $this->setExtensionName($route['extension_name']);
@@ -380,23 +380,72 @@ class Controller
     }
 
     /**
+     * Get default language
+     *
+     * @return string
+     */
+    public function getDefaultLanguage()
+    {
+        return ($this->has('default.language') == true) ? $this->get('default.language') : 'en';       
+    }
+
+    /**
+     * Set current language
+     *
+     * @param string $language
+     * @return void
+     */
+    public function setCurrentLanguage($language)
+    {
+        // add global variable 
+        $this->get('view')->addGlobal('current_language',$language);
+        // set session var
+        HtmlComponent::setLanguage($language);
+    }   
+
+    /**
+     * Set default language
+     *
+     * @return void
+     */
+    public function initDefaultLanguage()
+    {
+        $language = $this->getDefaultLanguage();
+        // set template var
+        $this->get('view')->addGlobal('default_language',$language);
+        
+        // set session var
+        HtmlComponent::setDefaultLanguage($language);
+    }
+
+    /**
      * Load page
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param CollectionInterface $data   
      * @param string|null $name Page name  
+     * @param boolean $loadRouteData 
      * @return Psr\Http\Message\ResponseInterface
     */
-    public function pageLoad($request, $response, $data, $pageName = null)
+    public function pageLoad($request, $response, $data, $pageName = null, $loadRouteData = true)
     {       
-        $language = $this->getPageLanguage($data);
+        if ($loadRouteData == true) {
+            $this->loadRoute($request);
+            $pageName = $this->page;          
+        }
         
         if (empty($pageName) == true) {
             $pageName = (isset($data['page_name']) == true) ? $data['page_name'] : $this->resolveRouteParam($request);
         } 
-        
+
         $data = (is_object($data) == true) ? $data->toArray() : $data;
+        
+        $language = $this->getPageLanguage($data);
+
+        $this->setCurrentLanguage($language);
+        $this->initDefaultLanguage();
+        
         if (empty($pageName) == true) {
             return $this->get('errors')->loadPageNotFound($response,$data,$language);    
         } 
