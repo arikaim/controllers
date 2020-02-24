@@ -206,7 +206,7 @@ class Controller
                 $this->initDefaultLanguage();
 
                 $result = $callable($arguments[0],$arguments[1],$arguments[2]);
-                if ($result == false) {
+                if ($result === false) {
                     return $this->pageNotFound($arguments[1],$arguments[2]);
                 }
                 $result = $this->pageLoad($arguments[0],$arguments[1],$arguments[2],$this->getPageName(),false,$language); 
