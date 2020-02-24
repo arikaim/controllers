@@ -199,8 +199,14 @@ class Controller
             $callback = function($arguments) use(&$callable) {
                 $this->loadRoute($arguments[0]);
 
+                // get language
+                $language = $this->getPageLanguage($arguments[2]);
+
+                $this->setCurrentLanguage($language);
+                $this->initDefaultLanguage();
+
                 $callable($arguments[0],$arguments[1],$arguments[2]);
-                $result = $this->pageLoad($arguments[0],$arguments[1],$arguments[2],$this->getPageName(),false); 
+                $result = $this->pageLoad($arguments[0],$arguments[1],$arguments[2],$this->getPageName(),false,$language); 
                 
                 return ($result === false) ? $this->pageNotFound($arguments[1],$arguments[2]) : $result;                 
             };
@@ -426,9 +432,10 @@ class Controller
      * @param CollectionInterface $data   
      * @param string|null $name Page name  
      * @param boolean $loadRouteData 
+     * @param string|null $language
      * @return Psr\Http\Message\ResponseInterface
     */
-    public function pageLoad($request, $response, $data, $pageName = null, $loadRouteData = true)
+    public function pageLoad($request, $response, $data, $pageName = null, $loadRouteData = true, $language = null)
     {       
         if ($loadRouteData == true) {
             $this->loadRoute($request);
@@ -441,11 +448,13 @@ class Controller
 
         $data = (is_object($data) == true) ? $data->toArray() : $data;
         
-        $language = $this->getPageLanguage($data);
+        if (empty($language) == true) {
+            $language = $this->getPageLanguage($data);
 
-        $this->setCurrentLanguage($language);
-        $this->initDefaultLanguage();
-        
+            $this->setCurrentLanguage($language);
+            $this->initDefaultLanguage();
+        }
+       
         if (empty($pageName) == true) {
             return $this->get('errors')->loadPageNotFound($response,$data,$language);    
         } 
