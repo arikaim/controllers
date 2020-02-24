@@ -205,7 +205,10 @@ class Controller
                 $this->setCurrentLanguage($language);
                 $this->initDefaultLanguage();
 
-                $callable($arguments[0],$arguments[1],$arguments[2]);
+                $result = $callable($arguments[0],$arguments[1],$arguments[2]);
+                if ($result == false) {
+                    return $this->pageNotFound($arguments[1],$arguments[2]);
+                }
                 $result = $this->pageLoad($arguments[0],$arguments[1],$arguments[2],$this->getPageName(),false,$language); 
                 
                 return ($result === false) ? $this->pageNotFound($arguments[1],$arguments[2]) : $result;                 
@@ -510,7 +513,7 @@ class Controller
     public function pageNotFound($response, $data = [])
     {     
         $language = $this->getPageLanguage($data);
-
+       
         return $this->get('errors')->loadPageNotFound($response,$data,$language,$this->getExtensionName());    
     }
 
