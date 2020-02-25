@@ -15,6 +15,7 @@ use Arikaim\Core\Http\Url;
 use Arikaim\Core\Collection\Arrays;
 use Arikaim\Core\View\Html\HtmlComponent;
 use Arikaim\Core\Http\Response;
+use Arikaim\Core\System\Error\Errors;
 
 /**
  * Base class for all Controllers
@@ -207,11 +208,11 @@ class Controller
 
                 $result = $callable($arguments[0],$arguments[1],$arguments[2]);
                 if ($result === false) {
-                    return $this->pageNotFound($arguments[1],$arguments[2]);
+                    return $this->pageNotFound($arguments[1],$arguments[2],$language);
                 }
                 $result = $this->pageLoad($arguments[0],$arguments[1],$arguments[2],$this->getPageName(),false,$language); 
                 
-                return ($result === false) ? $this->pageNotFound($arguments[1],$arguments[2]) : $result;                 
+                return ($result === false) ? $this->pageNotFound($arguments[1],$arguments[2],$language) : $result;                 
             };
             return $callback($arguments);
         }       
@@ -459,7 +460,7 @@ class Controller
         }
        
         if (empty($pageName) == true) {
-            return $this->get('errors')->loadPageNotFound($response,$data,$language);    
+            return $this->pageNotFound($response,$data,$language);    
         } 
         
         return $this->get('page')->load($response,$pageName,$data,$language);
@@ -508,13 +509,15 @@ class Controller
      *    
      * @param ResponseInterface $response
      * @param array $data
+     * @param string|null $language
      * @return Psr\Http\Message\ResponseInterface
      */
-    public function pageNotFound($response, $data = [])
+    public function pageNotFound($response, $data = [], $language = null)
     {     
-        $language = $this->getPageLanguage($data);
-       
-        return $this->get('errors')->loadPageNotFound($response,$data,$language,$this->getExtensionName());    
+        $language = (empty($language) == true) ? $this->getPageLanguage($data) : $language;
+        $pageName = Errors::getErrorPageName(Errors::PAGE_NOT_FOUND,$this->getExtensionName());
+
+        return $this->get('page')->load($response,$pageName,$data,$language);       
     }
 
     /**
