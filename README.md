@@ -9,6 +9,7 @@
 
 
 #### Installation
+
 ```sh
 composer require arikaim/controllers
 ```
