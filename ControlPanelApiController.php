@@ -9,12 +9,13 @@
  */
 namespace Arikaim\Core\Controllers;
 
+use Arikaim\Core\Controllers\ControlPanelApiInterface;
 use Arikaim\Core\Controllers\ApiController;
 
 /**
  * Base class for all Control Panel Api controllers
 */
-class ControlPanelApiController extends ApiController
+class ControlPanelApiController extends ApiController implements ControlPanelApiInterface
 {    
     /**
      * Forward calls to $this->response and run Controller function if exist

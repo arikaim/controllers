@@ -74,7 +74,6 @@ trait FileDownload
         return $response
             ->withHeader('Content-Type',$type)                      
             ->withHeader('Expires','0')
-            ->withHeader('Cache-Control','must-revalidate, post-check=0, pre-check=0')
             ->withHeader('Pragma','public')
             ->withBody($stream); 
     }
