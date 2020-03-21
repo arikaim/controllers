@@ -9,6 +9,7 @@
 */
 namespace Arikaim\Core\Controllers\Traits;
 
+use Arikaim\Core\Utils\File;
 use GuzzleHttp\Psr7;
 use Psr\Http\Message\StreamInterface;
 
@@ -90,10 +91,10 @@ trait FileDownload
     {
         if ($this->get('storage')->has($imagePath) == true) {
             $data = $this->get('storage')->read($imagePath);
-            $type = $this->get('storage')->getMimetype($imagePath);
+            $type = File::getMimetype($this->get('storage')->getFuillPath($imagePath));
         } else {
             $data = $this->get('storage')->read($imgeNotFoundPath);
-            $type = $this->get('storage')->getMimetype($imgeNotFoundPath); 
+            $type = File::getMimetype($this->get('storage')->getFuillPath($imgeNotFoundPath)); 
         }
         
         return $this->viewImageHeaders($response,$type,$data);
