@@ -325,6 +325,21 @@ class Controller
     }
 
     /**
+     * Get query param
+     *
+     * @param ServerRequestInterface $request
+     * @param string $name
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getQueryParam($request, $name, $default = null)
+    {
+        $params = $request->getQueryParams();
+
+        return (isset($params[$name]) == true) ? $params[$name] : $default;  
+    }
+
+    /**
      * Resolve params
      *
      * @param Request $request
