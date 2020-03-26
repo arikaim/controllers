@@ -458,7 +458,7 @@ class Controller
     {       
         if ($loadRouteData == true) {
             $this->loadRoute($request);
-            $pageName = $this->page;          
+            $pageName = (empty($pageName) == true) ? $this->page : $pageName;          
         }
         
         if (empty($pageName) == true) {
@@ -473,11 +473,11 @@ class Controller
             $this->setCurrentLanguage($language);
             $this->initDefaultLanguage();
         }
-       
+        
         if (empty($pageName) == true) {
             return $this->pageNotFound($response,$data,$language);    
         } 
-        
+     
         return $this->get('page')->load($response,$pageName,$data,$language);
     }
 
