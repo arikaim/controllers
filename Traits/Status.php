@@ -46,4 +46,36 @@ trait Status
             ->addRule('checkList:items=0,1,2,3,4,5,6,7,8,9,10,toggle','status')
             ->validate(); 
     }
+
+    /**
+     * Set default
+     *
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param \Psr\Http\Message\ResponseInterface $response
+     * @param Validator $data
+     * @return Psr\Http\Message\ResponseInterface
+     */
+    public function setDefaultController($request, $response, $data)
+    {
+        $this->requireControlPanelPermission();
+
+        $this->onDataValid(function($data) {       
+            $uuid = $data->get('uuid');
+            $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
+            if (is_object($model) == false) {
+                $this->error('errors.default');
+                return;
+            }
+
+            $result = $model->setDefault($uuid);
+        
+            $this->setResponse($result,function() use($uuid) {              
+                $this
+                    ->message('default')
+                    ->field('uuid',$uuid);
+                  
+            },'errors.default');
+        });
+        $data->validate(); 
+    }
 }
