@@ -278,6 +278,16 @@ class Controller
     }
 
     /**
+     * Return current logged user id
+     *
+     * @return integer|null
+     */
+    public function getUserId()
+    {
+        return ($this->has('access') == true) ? $this->get('access')->getId() : null; 
+    }
+
+    /**
      * Set callback for validation errors
      *
      * @param \Closure $callback
