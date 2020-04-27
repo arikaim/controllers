@@ -174,7 +174,8 @@ class Controller
     public function getUrl($request, $relative = false)
     {
         $path = $request->getUri()->getPath();
-        return ($relative == true ) ? $path : Url::BASE_URL . '/' . $path;
+
+        return ($relative == true ) ? $path : DOMAIN . $path;
     }
 
     /**
@@ -202,16 +203,14 @@ class Controller
 
                 // get language
                 $language = $this->getPageLanguage($arguments[2]);
-
                 $this->setCurrentLanguage($language);
-                $this->initDefaultLanguage();
-
-                $result = $callable($arguments[0],$arguments[1],$arguments[2]);
+             
+                $result = $callable($arguments[0],$arguments[1],$arguments[2]);               
                 if ($result === false) {
                     return $this->pageNotFound($arguments[1],$arguments[2],$language);
-                }
+                }               
                 $result = $this->pageLoad($arguments[0],$arguments[1],$arguments[2],$this->getPageName(),false,$language); 
-                
+               
                 return ($result === false) ? $this->pageNotFound($arguments[1],$arguments[2],$language) : $result;                 
             };
             return $callback($arguments);
@@ -410,8 +409,10 @@ class Controller
      * @return string
     */
     public function getPageLanguage($data)
-    {
-        return (isset($data['language']) == true) ? $data['language'] : HtmlComponent::getLanguage();           
+    {     
+        $language = (isset($data['language']) == true) ? $data['language'] : HtmlComponent::getLanguage();
+           
+        return (empty($language) == true) ? $this->getDefaultLanguage() : $language;           
     }
 
     /**
@@ -427,31 +428,19 @@ class Controller
     /**
      * Set current language
      *
-     * @param string $language
+     * @param string|null $language
      * @return void
      */
     public function setCurrentLanguage($language)
     {
+        $language = (empty($language) == true) ? $this->getDefaultLanguage() : $language;
+
         // add global variable 
         $this->get('view')->addGlobal('current_language',$language);
+     
         // set session var
         HtmlComponent::setLanguage($language);
     }   
-
-    /**
-     * Set default language
-     *
-     * @return void
-     */
-    public function initDefaultLanguage()
-    {
-        $language = $this->getDefaultLanguage();
-        // set template var
-        $this->get('view')->addGlobal('default_language',$language);
-        
-        // set session var
-        HtmlComponent::setDefaultLanguage($language);
-    }
 
     /**
      * Load page
@@ -467,8 +456,8 @@ class Controller
     public function pageLoad($request, $response, $data, $pageName = null, $loadRouteData = true, $language = null)
     {       
         if ($loadRouteData == true) {
-            $this->loadRoute($request);
-            $pageName = (empty($pageName) == true) ? $this->page : $pageName;          
+            $this->loadRoute($request);            
+            $pageName = (empty($this->page) == true) ? $pageName : $this->page;                  
         }
         
         if (empty($pageName) == true) {
@@ -478,10 +467,8 @@ class Controller
         $data = (is_object($data) == true) ? $data->toArray() : $data;
         
         if (empty($language) == true) {
-            $language = $this->getPageLanguage($data);
-
+            $language = $this->getPageLanguage($data);        
             $this->setCurrentLanguage($language);
-            $this->initDefaultLanguage();
         }
         
         if (empty($pageName) == true) {
