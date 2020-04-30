@@ -48,16 +48,19 @@ trait FileDownload
      *
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param string $filePath  
+     * @param string filesystem
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function downloadFile($response, $filePath)
+    public function downloadFile($response, $filePath, $filesystem = 'storage')
     {
-        if ($this->get('storage')->has($filePath) == true) {
-            $data = $this->get('storage')->read($filePath);  
-            $fileName = basename($filePath);        
+        if ($this->get('storage')->has($filePath,$filesystem) == true) {
+            $data = $this->get('storage')->readStream($filePath,$filesystem);  
+            $fileName = basename($filePath);  
+           
+            return $this->downloadFileHeaders($response,$fileName,$data);            
         } 
-
-        return $this->downloadFileHeaders($response,$fileName,$data);
+        
+        return $response;
     } 
 
     /**
