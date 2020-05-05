@@ -11,7 +11,6 @@ namespace Arikaim\Core\Controllers;
 
 use Psr\Http\Message\ResponseInterface;
 
-use Arikaim\Core\Http\Url;
 use Arikaim\Core\Collection\Arrays;
 use Arikaim\Core\View\Html\HtmlComponent;
 use Arikaim\Core\Http\Response;
