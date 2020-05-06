@@ -115,6 +115,16 @@ class Controller
     }
 
     /**
+     * Get container
+     *
+     * @return Container
+     */
+    public function getContainer()
+    {
+        return $this->container;
+    }
+
+    /**
      * Get page name
      *
      * @return string|null
