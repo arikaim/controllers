@@ -26,9 +26,17 @@ trait EntityPermissions
      */
     public function addUserPermissionController($request, $response, $data)
     {
-        $this->onDataValid(function($data) {                       
+        $this->onDataValid(function($data) {   
+            $users = Model::create('Users');                    
             $entityId = $data->get('entity');
-            $userId = $data->get('user');
+            $user = $data->get('user','');
+            $userFound = $users->findUser($user);
+        
+            if ($userFound === false) {
+                $this->error('errors.user.id');
+                return;
+            }
+            $userId = $userFound->id;    
             $permissions = $data->get('permissions','full');
 
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
@@ -41,10 +49,10 @@ trait EntityPermissions
         
             $this->setResponse(is_object($permission),function() use($permission) {              
                 $this
-                    ->message('permission-add')
+                    ->message('permission.add')
                     ->field('uuid',$permission->uuid);
                     
-            },'errors.permission-add');
+            },'errors.permission.add');
         });
         $data->validate(); 
     }
@@ -75,7 +83,7 @@ trait EntityPermissions
                     ->message('permission-delete')
                     ->field('uuid',$uuid);
                   
-            },'errors.permission-delete');
+            },'errors.permission.delete');
         });
         $data->validate(); 
     }
