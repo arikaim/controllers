@@ -27,7 +27,7 @@ trait EntityPermissions
     public function addUserPermissionController($request, $response, $data)
     {
         $this->onDataValid(function($data) {   
-            $users = Model::create('Users');                    
+            $users = Model::Users();                    
             $entityId = $data->get('entity');
             $user = $data->get('user','');
             $userFound = $users->findUser($user);
