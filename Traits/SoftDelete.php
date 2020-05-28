@@ -12,7 +12,7 @@ namespace Arikaim\Core\Controllers\Traits;
 use Arikaim\Core\Db\Model;
 
 /**
- * Delete trait
+ * Soft Delete trait
 */
 trait SoftDelete 
 {        
@@ -26,13 +26,12 @@ trait SoftDelete
      */
     public function softDeleteController($request, $response, $data)
     {
-        $this->requireControlPanelPermission();
-
         $this->onDataValid(function($data) {                  
             $uuid = $data->get('uuid');
+            
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
             if (is_object($model) == false) {
-                $this->error('Not valid model class or extensio nname');
+                $this->error('Not valid model class or extension name');
                 return;
             }
             $model = $model->findById($uuid);
@@ -60,17 +59,14 @@ trait SoftDelete
      */
     public function restoreController($request, $response, $data)
     {
-        $this->requireControlPanelPermission();
-
         $this->onDataValid(function($data) {                  
             $uuid = $data->get('uuid');
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
             if (is_object($model) == false) {
-                $this->error('Not valid model class or extensio nname');
+                $this->error('Not valid model class or extension name');
                 return;
             }
             $model = $model->findById($uuid);
-            
             $result = (is_object($model) == false) ? false : $model->restore();
             
             $this->setResponse($result,function() use($uuid) {              
