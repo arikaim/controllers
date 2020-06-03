@@ -78,4 +78,37 @@ trait Status
         });
         $data->validate(); 
     }
+
+    /**
+     * Set multiuser default model
+     *
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param \Psr\Http\Message\ResponseInterface $response
+     * @param Validator $data
+     * @return Psr\Http\Message\ResponseInterface
+     */
+    public function setMultiuserDefaultController($request, $response, $data)
+    {
+        $this->onDataValid(function($data) {                  
+            $uuid = $data->get('uuid');
+            $userId = $data->get('user_id',$this->getUserId());
+            
+            $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
+            if (is_object($model) == false) {
+                $this->error('Not valid model class or extension name');
+                return;
+            }
+    
+            $result = $model->setDefault($uuid,$userId);
+              
+            $this->setResponse($result,function() use($uuid) {              
+                $this
+                    ->message('default')
+                    ->field('uuid',$uuid);                  
+            },'errors.default');
+        });
+        $data
+            ->addRule('text:min=2|required','uuid')           
+            ->validate();       
+    }
 }
