@@ -17,6 +17,26 @@ use Arikaim\Core\Db\Model;
 trait SoftDelete 
 {        
     /**
+     * Get soft delete message name
+     *
+     * @return string
+     */
+    protected function getSoftDeleteMessage()
+    {
+        return ($this->isset($this->softDeleteMessage) == true) ? $this->softDeleteMessage : 'delete';
+    }
+
+    /**
+     * Get restore message name
+     *
+     * @return string
+     */
+    protected function getRestoreMessage()
+    {
+        return ($this->isset($this->restoreMessage) == true) ? $this->restoreMessage : 'restore';
+    }
+
+    /**
      * Soft delete model
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
@@ -40,7 +60,7 @@ trait SoftDelete
               
             $this->setResponse($result,function() use($uuid) {              
                 $this
-                    ->message('delete')
+                    ->message($this->getSoftDeleteMessage())
                     ->field('uuid',$uuid);                  
             },'errors.delete');
         });
@@ -71,7 +91,7 @@ trait SoftDelete
             
             $this->setResponse($result,function() use($uuid) {              
                 $this
-                    ->message('restore')
+                    ->message($this->getRestoreMessage())
                     ->field('uuid',$uuid);                  
             },'errors.restore');
         });

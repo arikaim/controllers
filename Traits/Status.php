@@ -16,6 +16,27 @@ use Arikaim\Core\Db\Model;
 */
 trait Status 
 {        
+
+    /**
+     * Get status changed message
+     *
+     * @return string
+     */
+    protected function getStatusChangedMessage()
+    {
+        return (isset($this->statusChangedMessage) == true) ? $this->statusChangedMessage : 'status';
+    }
+
+    /**
+     * Get set default message 
+     *
+     * @return string
+     */
+    protected function getDefaultMessage()
+    {
+        return (isset($this->setDefaultMessage) == true) ? $this->setDefaultMessage : 'default';
+    }
+
     /**
      * Set status
      *
@@ -37,7 +58,7 @@ trait Status
         
             $this->setResponse($result,function() use($uuid,$status) {              
                 $this
-                    ->message('status')
+                    ->message($this->getStatusChangedMessage())
                     ->field('uuid',$uuid)
                     ->field('status',$status);
             },'errors.status');
@@ -71,7 +92,7 @@ trait Status
         
             $this->setResponse($result,function() use($uuid) {              
                 $this
-                    ->message('default')
+                    ->message($this->getDefaultMessage())
                     ->field('uuid',$uuid);
                   
             },'errors.default');
@@ -103,7 +124,7 @@ trait Status
               
             $this->setResponse($result,function() use($uuid) {              
                 $this
-                    ->message('default')
+                    ->message($this->getDefaultMessage())
                     ->field('uuid',$uuid);                  
             },'errors.default');
         });

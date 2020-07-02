@@ -17,6 +17,16 @@ use Arikaim\Core\Utils\Path;
 trait FileUpload 
 {        
     /**
+     * Get file upload message name
+     *
+     * @return string
+     */
+    protected function getFileUploadMessage()
+    {
+        return ($this->isset($this->fileUploadMessage) == true) ? $this->fileUploadMessage : 'upload';
+    }
+
+    /**
      * Get field name
      *
      * @return string
@@ -44,7 +54,7 @@ trait FileUpload
                
             $this->setResponse(is_array($files),function() use($files) {                  
                 $this
-                    ->message('upload')
+                    ->message($this->getFileUploadMessage())
                     ->field('files',$files);                                  
             },'errors.upload');           
         });

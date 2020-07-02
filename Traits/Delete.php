@@ -17,6 +17,16 @@ use Arikaim\Core\Db\Model;
 trait Delete 
 {        
     /**
+     * Get delete message name
+     *
+     * @return string
+     */
+    protected function getDeleteMessage()
+    {
+        return ($this->isset($this->deleteMessage) == true) ? $this->deleteMessage : 'delete';
+    }
+
+    /**
      * Delete model
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
@@ -35,7 +45,7 @@ trait Delete
                
             $this->setResponse($result,function() use($uuid) {              
                 $this
-                    ->message('delete')
+                    ->message($this->getDeleteMessage())
                     ->field('uuid',$uuid);                  
             },'errors.delete');
         });

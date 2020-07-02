@@ -17,6 +17,16 @@ use Arikaim\Core\Db\Model;
 trait MetaTags 
 {        
     /**
+     * Get update metatags message name
+     *
+     * @return string
+     */
+    protected function getUpdateMetaTagsMessage()
+    {
+        return ($this->isset($this->updateMetaTagsMessage) == true) ? $this->updateMetaTagsMessage : 'metatags';
+    }
+
+    /**
      * Update meta tags
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
@@ -40,7 +50,7 @@ trait MetaTags
           
             $this->setResponse(is_object($translationModel),function() use($translationModel) {               
                 $this
-                    ->message('metatags')
+                    ->message($this->getUpdateMetaTagsMessage())
                     ->field('uuid',$translationModel->uuid);   
             },'errors.metatags');
         });

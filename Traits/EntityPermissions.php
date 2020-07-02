@@ -17,6 +17,26 @@ use Arikaim\Core\Db\Model;
 trait EntityPermissions 
 {        
     /**
+     * Get add permission message name
+     *
+     * @return string
+     */
+    protected function getAddPermissionMessage()
+    {
+        return ($this->isset($this->addPermissionMessage) == true) ? $this->addPermissionMessage : 'permission.add';
+    }
+
+    /**
+     * Get delete permission message name
+     *
+     * @return string
+     */
+    protected function getDeletePermissionMessage()
+    {
+        return ($this->isset($this->deletePermissionMessage) == true) ? $this->deletePermissionMessage : 'permission.delete';
+    }
+
+    /**
      * Add user permission
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
@@ -49,7 +69,7 @@ trait EntityPermissions
         
             $this->setResponse(is_object($permission),function() use($permission) {              
                 $this
-                    ->message('permission.add')
+                    ->message($this->getAddPermissionMessage())
                     ->field('uuid',$permission->uuid);
                     
             },'errors.permission.add');
@@ -80,7 +100,7 @@ trait EntityPermissions
 
             $this->setResponse($result,function() use($uuid) {              
                 $this
-                    ->message('permission-delete')
+                    ->message($this->getDeletePermissionMessage())
                     ->field('uuid',$uuid);
                   
             },'errors.permission.delete');
