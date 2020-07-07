@@ -23,7 +23,7 @@ trait Delete
      */
     protected function getDeleteMessage()
     {
-        return ($this->isset($this->deleteMessage) == true) ? $this->deleteMessage : 'delete';
+        return (isset($this->deleteMessage) == true) ? $this->deleteMessage : 'delete';
     }
 
     /**

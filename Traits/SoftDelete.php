@@ -23,7 +23,7 @@ trait SoftDelete
      */
     protected function getSoftDeleteMessage()
     {
-        return ($this->isset($this->softDeleteMessage) == true) ? $this->softDeleteMessage : 'delete';
+        return (isset($this->softDeleteMessage) == true) ? $this->softDeleteMessage : 'delete';
     }
 
     /**
@@ -33,7 +33,7 @@ trait SoftDelete
      */
     protected function getRestoreMessage()
     {
-        return ($this->isset($this->restoreMessage) == true) ? $this->restoreMessage : 'restore';
+        return (isset($this->restoreMessage) == true) ? $this->restoreMessage : 'restore';
     }
 
     /**

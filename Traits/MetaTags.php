@@ -23,7 +23,7 @@ trait MetaTags
      */
     protected function getUpdateMetaTagsMessage()
     {
-        return ($this->isset($this->updateMetaTagsMessage) == true) ? $this->updateMetaTagsMessage : 'metatags';
+        return (isset($this->updateMetaTagsMessage) == true) ? $this->updateMetaTagsMessage : 'metatags';
     }
 
     /**

@@ -23,7 +23,7 @@ trait FileUpload
      */
     protected function getFileUploadMessage()
     {
-        return ($this->isset($this->fileUploadMessage) == true) ? $this->fileUploadMessage : 'upload';
+        return (isset($this->fileUploadMessage) == true) ? $this->fileUploadMessage : 'upload';
     }
 
     /**
