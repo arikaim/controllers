@@ -398,17 +398,30 @@ class Controller
      */
     public function requireAccess($name, $type = null)
     {       
-        if ($this->has('access') == false) {
-            return false;
-        }
-
-        if ($this->get('access')->hasAccess($name,$type) == true) {
+        if ($this->hasAccess($name,$type) == true) {
             return true;
         }
+       
         $response = $this->get('errors')->loadSystemError($this->response);
         Response::emit($response); 
           
         exit();
+    }
+
+    /**
+     * Return true if user have access permission
+     *
+     * @param string $name
+     * @param string $type
+     * @return boolean
+     */
+    public function hasAccess($name, $type = null)
+    {
+        if ($this->has('access') == false) {
+            return false;
+        }
+
+        return $this->get('access')->hasAccess($name,$type,$this->getUserId());
     }
 
     /**

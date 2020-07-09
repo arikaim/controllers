@@ -193,11 +193,7 @@ class ApiController extends Controller
      */
     public function requireAccess($name, $type = null)
     {       
-        if ($this->has('access') == false) {
-            return false;
-        }
-        
-        if ($this->get('access')->hasAccess($name,$type) == true) {
+        if ($this->hasAccess($name,$type) == true) {
             return true;
         }
         
