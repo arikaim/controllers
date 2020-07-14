@@ -112,9 +112,9 @@ trait Status
     {
         $this->onDataValid(function($data) {                  
             $uuid = $data->get('uuid');
-            $userId = $data->get('user_id',$this->getUserId());
-            
+            $userId = $data->get('user_id',$this->getUserId());            
             $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
+            
             if (is_object($model) == false) {
                 $this->error('Not valid model class or extension name');
                 return;
@@ -128,8 +128,6 @@ trait Status
                     ->field('uuid',$uuid);                  
             },'errors.default');
         });
-        $data
-            ->addRule('text:min=2|required','uuid')           
-            ->validate();       
+        $data->validate();       
     }
 }
