@@ -9,6 +9,7 @@
  */
 namespace Arikaim\Core\Controllers;
 
+use Psr\Http\Message\ResponseInterface;
 use Arikaim\Core\Http\ApiResponse;
 use Arikaim\Core\Http\Response;
 use Arikaim\Core\Controllers\Controller;
@@ -34,6 +35,8 @@ class ApiController extends Controller
 
     /**
      * Constructor
+     *
+     * @param Container $container
      */
     public function __construct($container) 
     {
@@ -75,7 +78,7 @@ class ApiController extends Controller
      * Add message to response, first find in messages array if not found display name value as message 
      *
      * @param string $name  
-     * @return Response
+     * @return ApiResponse
      */
     public function message($name)
     {
@@ -89,7 +92,7 @@ class ApiController extends Controller
      * Set error, first find in messages array if not found display name value as error
      *
      * @param string $name
-     * @return Response
+     * @return ApiController
      */
     public function error($name)
     {
@@ -98,9 +101,9 @@ class ApiController extends Controller
             // check for system error
             $message = $this->get('errors')->get($name,null);
         }
-        $message = (empty($message) == true) ? $name : $message;
-        
+        $message = (empty($message) == true) ? $name : $message;        
         $this->response->setError($message);
+
         return $this;
     }
 
@@ -120,7 +123,7 @@ class ApiController extends Controller
      *
      * @param string $name
      * @param mixed $value
-     * @return Response
+     * @return ApiResponse
      */
     public function field($name, $value)
     {
@@ -137,11 +140,11 @@ class ApiController extends Controller
     */
     public function setResponse($condition, $data, $error)
     {
-        if (is_string($error) == true) {
+        if (\is_string($error) == true) {
             $message = $this->getMessage($error);
             $error = (empty($message) == true) ? $error : $message;
         }
-        if (is_string($data) == true) {
+        if (\is_string($data) == true) {
             $message = $this->getMessage($data);
             $data = (empty($message) == true) ? $data : $message;
         }
@@ -158,16 +161,17 @@ class ApiController extends Controller
      */
     public function __call($name, $arguments)
     {
-        if (is_callable([$this->response,$name]) == true) {
-            return call_user_func_array([$this->response,$name], $arguments);     
+        if (\is_callable([$this->response,$name]) == true) {
+            return \call_user_func_array([$this->response,$name], $arguments);     
         }
       
-        if (method_exists($this,$name . 'Controller') == true) {
+        if (\method_exists($this,$name . 'Controller') == true) {
             $callable = [$this,$name . 'Controller'];
             $callback = function($arguments) use(&$callable) {
                 $callable($arguments[0],$arguments[1],$arguments[2]);
                 return $this->getResponse();                 
             };
+            
             return $callback($arguments);
         }
     }
@@ -177,7 +181,7 @@ class ApiController extends Controller
      *  
      * @param boolean $raw
      * 
-     * @return Response
+     * @return ResponseInterface
      */
     public function getResponse($raw = false)
     {

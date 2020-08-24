@@ -41,7 +41,7 @@ trait Delete
         $this->onDataValid(function($data) {                  
             $uuid = $data->get('uuid');
             $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-            $result = (is_object($model) == false) ? false : (bool)$model->delete();
+            $result = (\is_object($model) == false) ? false : (bool)$model->delete();
                
             $this->setResponse($result,function() use($uuid) {              
                 $this

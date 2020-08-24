@@ -9,9 +9,10 @@
 */
 namespace Arikaim\Core\Controllers\Traits;
 
-use Arikaim\Core\Utils\File;
 use GuzzleHttp\Psr7;
 use Psr\Http\Message\StreamInterface;
+
+use Arikaim\Core\Utils\File;
 
 /**
  * File download and image view trait
@@ -36,7 +37,7 @@ trait FileDownload
             ->withHeader('Content-Type','application/download')
             ->withHeader('Content-Description','File Transfer')
             ->withHeader('Content-Transfer-Encoding','binary')
-            ->withHeader('Content-Disposition','attachment; filename="' . basename($fileName) . '"')
+            ->withHeader('Content-Disposition','attachment; filename="' . \basename($fileName) . '"')
             ->withHeader('Expires','0')
             ->withHeader('Cache-Control','must-revalidate, post-check=0, pre-check=0')
             ->withHeader('Pragma','public')

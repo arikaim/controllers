@@ -54,7 +54,7 @@ trait Status
             $uuid = $data->get('uuid');
           
             $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-            $result = (is_object($model) == true) ? $model->setStatus($status) : false; 
+            $result = (\is_object($model) == true) ? $model->setStatus($status) : false; 
         
             $this->setResponse($result,function() use($uuid,$status) {              
                 $this
@@ -83,7 +83,7 @@ trait Status
         $this->onDataValid(function($data) {       
             $uuid = $data->get('uuid');
             $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-            if (is_object($model) == false) {
+            if (\is_object($model) == false) {
                 $this->error('errors.default');
                 return;
             }
@@ -115,7 +115,7 @@ trait Status
             $userId = $data->get('user_id',$this->getUserId());            
             $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
             
-            if (is_object($model) == false) {
+            if (\is_object($model) == false) {
                 $this->error('Not valid model class or extension name');
                 return;
             }

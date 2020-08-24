@@ -60,14 +60,14 @@ trait EntityPermissions
             $permissions = $data->get('permissions','full');
 
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
-            if (is_object($model) == false) {
+            if (\is_object($model) == false) {
                 $this->error('errors.id');
                 return;
             }
 
             $permission = $model->addUserPermission($entityId,$userId,$permissions); 
         
-            $this->setResponse(is_object($permission),function() use($permission) {              
+            $this->setResponse(\is_object($permission),function() use($permission) {              
                 $this
                     ->message($this->getAddPermissionMessage())
                     ->field('uuid',$permission->uuid);

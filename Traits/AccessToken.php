@@ -27,6 +27,6 @@ trait AccessToken
     {
         $accessToken = $this->get('access')->withProvider('token')->createToken($userId);   
 
-        return (is_array($accessToken) == true) ? Url::BASE_URL . '/' . $pattern . '/' . $accessToken['token'] : false;
+        return (\is_array($accessToken) == true) ? Url::BASE_URL . '/' . $pattern . '/' . $accessToken['token'] : false;
     }
 }

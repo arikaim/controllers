@@ -26,11 +26,11 @@ class ControlPanelApiController extends ApiController implements ControlPanelApi
      */
     public function __call($name, $arguments)
     {
-        if (is_callable([$this->response,$name]) == true) {
-            return call_user_func_array([$this->response,$name], $arguments);     
+        if (\is_callable([$this->response,$name]) == true) {
+            return \call_user_func_array([$this->response,$name], $arguments);     
         }
       
-        if (method_exists($this,$name . 'Controller') == true) {
+        if (\method_exists($this,$name . 'Controller') == true) {
             $callable = [$this,$name . 'Controller'];
             $callback = function($arguments) use(&$callable) {
 

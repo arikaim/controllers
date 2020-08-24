@@ -52,7 +52,7 @@ trait FileUpload
             $destinationPath = $data->get('path','');
             $files = $this->uploadFiles($request,$destinationPath);
                
-            $this->setResponse(is_array($files),function() use($files) {                  
+            $this->setResponse(\is_array($files),function() use($files) {                  
                 $this
                     ->message($this->getFileUploadMessage())
                     ->field('files',$files);                                  
@@ -75,7 +75,7 @@ trait FileUpload
         $files = $request->getUploadedFiles();
         $destinationPath = ($relative == true) ? Path::STORAGE_PATH . $path : $path;
     
-        $uploadedFiles = (is_object($files[$fieldName]) == true) ? [$files[$fieldName]] : $files[$fieldName];
+        $uploadedFiles = (\is_object($files[$fieldName]) == true) ? [$files[$fieldName]] : $files[$fieldName];
     
         $result = [];
         foreach ($uploadedFiles as $file) {

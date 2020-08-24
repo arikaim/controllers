@@ -58,6 +58,8 @@ class Controller
 
     /**
      * Constructor
+     *
+     * @param Container $container
      */
     public function __construct($container)
     { 
@@ -205,7 +207,7 @@ class Controller
      */
     public function __call($name, $arguments)
     {       
-        if (method_exists($this,$name . 'Page') == true) {
+        if (\method_exists($this,$name . 'Page') == true) {
             $callable = [$this,$name . 'Page'];
             $callback = function($arguments) use(&$callable) {
                 $this->loadRoute($arguments[0]);
@@ -222,6 +224,7 @@ class Controller
                
                 return ($result === false) ? $this->pageNotFound($arguments[1],$arguments[2],$language) : $result;                 
             };
+
             return $callback($arguments);
         }       
     }
@@ -261,7 +264,7 @@ class Controller
     public function loadMessages($componentName, $language = null)
     {
         $messages = $this->get('page')->createHtmlComponent($componentName,[],$language)->getProperties();
-        $this->messages = (is_object($messages) == true) ? $messages->toArray() : [];
+        $this->messages = (\is_object($messages) == true) ? $messages->toArray() : [];
     }
 
     /**
@@ -335,11 +338,11 @@ class Controller
      */
     public function getRequestParams($request)
     {
-        $params = explode('/', $request->getAttribute('params'));
-        $params = array_filter($params);
+        $params = \explode('/', $request->getAttribute('params'));
+        $params = \array_filter($params);
         $vars = $request->getQueryParams();
 
-        return array_merge($params, $vars);       
+        return \array_merge($params, $vars);       
     }
 
     /**
@@ -486,7 +489,7 @@ class Controller
             $pageName = (isset($data['page_name']) == true) ? $data['page_name'] : $this->resolveRouteParam($request);
         } 
 
-        $data = (is_object($data) == true) ? $data->toArray() : $data;
+        $data = (\is_object($data) == true) ? $data->toArray() : $data;
         
         if (empty($language) == true) {
             $language = $this->getPageLanguage($data);        
@@ -529,10 +532,10 @@ class Controller
     {            
         // try from reutes db table
         $route = $request->getAttribute('route');  
-        if ((is_object($route) == true) && ($this->has('routes') == true)) {
+        if ((\is_object($route) == true) && ($this->has('routes') == true)) {
             $pattern = $route->getPattern();              
             $routeData = $this->get('routes')->getRoute('GET',$pattern);            
-            return (is_array($routeData) == true) ? $routeData[$paramName] : null;             
+            return (\is_array($routeData) == true) ? $routeData[$paramName] : null;             
         } 
       
         return null;
