@@ -96,10 +96,10 @@ trait FileDownload
     {
         if ($this->get('storage')->has($imagePath,$filesystem) == true) {
             $data = $this->get('storage')->read($imagePath,$filesystem);
-            $type = File::getMimetype($this->get('storage')->getFuillPath($imagePath,$filesystem));
+            $type = File::getMimetype($this->get('storage')->getFullPath($imagePath,$filesystem));
         } else {
             $data = $this->get('storage')->read($imgeNotFoundPath,$filesystem);
-            $type = File::getMimetype($this->get('storage')->getFuillPath($imgeNotFoundPath,$filesystem)); 
+            $type = File::getMimetype($this->get('storage')->getFullPath($imgeNotFoundPath,$filesystem)); 
         }
         
         return $this->viewImageHeaders($response,$type,$data);
