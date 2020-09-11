@@ -76,8 +76,8 @@ trait FileDownload
     {
         $stream = ($stream instanceof StreamInterface) ? $stream : Psr7\stream_for($stream);
 
-        return $response
-            ->withHeader('Content-Type',$type)                      
+        return $response        
+            ->withHeader('Content-Type',$type)                          
             ->withHeader('Expires','0')
             ->withHeader('Pragma','public')
             ->withBody($stream); 
