@@ -65,7 +65,7 @@ trait SoftDelete
             },'errors.delete');
         });
         $data
-            ->addRule('text:min=2|required','uuid')           
+            ->addRule('text:min=1|required','uuid')           
             ->validate();       
     }
 
