@@ -264,7 +264,7 @@ class Controller
     public function loadMessages($componentName, $language = null)
     {
         $messages = $this->get('page')->createHtmlComponent($componentName,[],$language)->getProperties();
-        $this->messages = (\is_object($messages) == true) ? $messages->toArray() : [];
+        $this->messages = (empty($messages) == true) ? [] : $messages;
     }
 
     /**
@@ -435,7 +435,7 @@ class Controller
     */
     public function getPageLanguage($data)
     {     
-        $language = (isset($data['language']) == true) ? $data['language'] : HtmlComponent::getLanguage();
+        $language = (isset($data['language']) == true) ? $data['language'] : $this->get('page')->getLanguage();
            
         return (empty($language) == true) ? $this->getDefaultLanguage() : $language;           
     }
@@ -463,8 +463,8 @@ class Controller
         // add global variable 
         $this->get('view')->addGlobal('current_language',$language);
      
-        // set session var
-        HtmlComponent::setLanguage($language);
+        // set current language
+        $this->get('page')->setLanguage($language);
     }   
 
     /**

@@ -116,7 +116,7 @@ trait Status
             $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
             
             if (\is_object($model) == false) {
-                $this->error('Not valid model class or extension name');
+                $this->error('errors.class');
                 return;
             }
     

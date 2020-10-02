@@ -201,7 +201,7 @@ class ApiController extends Controller
             return true;
         }
         
-        $this->setError($this->get('errors')->getError("AUTH_FAILED"));                        
+        $this->setError($this->get('errors')->getError('AUTH_FAILED'));                        
         Response::emit($this->getResponse()); 
 
         exit();       

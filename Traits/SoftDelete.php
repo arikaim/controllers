@@ -51,7 +51,7 @@ trait SoftDelete
             
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
             if (\is_object($model) == false) {
-                $this->error('Not valid model class or extension name');
+                $this->error('errors.class');
                 return;
             }
             $model = $model->findById($uuid);
@@ -83,7 +83,7 @@ trait SoftDelete
             $uuid = $data->get('uuid');
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
             if (\is_object($model) == false) {
-                $this->error('Not valid model class or extension name');
+                $this->error('errors.class');
                 return;
             }
 
