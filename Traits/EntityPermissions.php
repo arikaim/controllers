@@ -67,7 +67,14 @@ trait EntityPermissions
 
             $permission = $model->addUserPermission($entityId,$userId,$permissions); 
         
-            $this->setResponse(\is_object($permission),function() use($permission) {              
+            $this->setResponse(\is_object($permission),function() use($permission) {   
+                // dispatch event
+                $this->dispatch('entity.permission.add',[
+                    'permission' => $permission->toArray(),
+                    'related'    => $permission->related->toArray(),
+                    'entity'     => $permission->entity->toArray()
+                ]);
+
                 $this
                     ->message($this->getAddPermissionMessage())
                     ->field('uuid',$permission->uuid);
@@ -89,16 +96,23 @@ trait EntityPermissions
     {
         $this->onDataValid(function($data) {       
             $uuid = $data->get('uuid');
-            $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
+            $permission = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
             
-            if (is_object($model) == false) {
+            if (\is_object($permission) == false) {
                 $this->error('errors.id');
                 return;
             }
         
-            $result = $model->delete();
+            $result = $permission->delete();
 
-            $this->setResponse($result,function() use($uuid) {              
+            $this->setResponse($result,function() use($uuid,$permission) {   
+                // dispatch event  
+                $this->dispatch('entity.permission.delete',[
+                    'permission' => $permission->toArray(),
+                    'related'    => $permission->related->toArray(),
+                    'entity'     => $permission->entity->toArray()
+                ]);         
+
                 $this
                     ->message($this->getDeletePermissionMessage())
                     ->field('uuid',$uuid);

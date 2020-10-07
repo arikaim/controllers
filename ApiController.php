@@ -54,6 +54,18 @@ class ApiController extends Controller
     }
 
     /**
+     * Dispatch event
+     *
+     * @param string $eventName
+     * @param array $params
+     * @return mixed|false
+     */
+    public function dispatch($eventName, $params) 
+    {
+        return ($this->has('event') == true) ? $this->get('event')->dispatch($eventName,$params) : false;  
+    }
+
+    /**
      * Set model class name
      *
      * @param string $class
