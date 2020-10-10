@@ -49,15 +49,10 @@ trait EntityPermissions
         $this->onDataValid(function($data) {   
             $users = Model::Users();                    
             $entityId = $data->get('entity');
-            $user = $data->get('user','');
-            $userFound = $users->findUser($user);
-        
-            if ($userFound === false) {
-                $this->error('errors.user.id');
-                return;
-            }
-            $userId = $userFound->id;    
+            $user = $data->get('user',null);
+            $group = $data->get('group',null);
             $permissions = $data->get('permissions','full');
+            $permissionName = $data->get('permission_name',null);
 
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
             if (\is_object($model) == false) {
@@ -65,12 +60,27 @@ trait EntityPermissions
                 return;
             }
 
-            $permission = $model->addUserPermission($entityId,$userId,$permissions); 
-        
+            $permissionModel = (empty($permissionName) == false) ? Model::Permissions()->findPermission($permissionName) : null;
+            $permissionId = (\is_object($permissionModel) == true) ? $permissionModel->id : null;
+            $permission = null;
+
+            $userFound = $users->findUser($user);
+            if (\is_object($userFound) == true) {
+                $permission = $model->addUserPermission($entityId,$userFound->id,$permissions,$permissionId); 
+            } else {
+                // add group permission
+                $userGroup = Model::UserGroups()->findByColumn($group,['id','uuid','slug']);
+                if (\is_object($userGroup) == true) {
+                    $permission = $model->addGroupPermission($entityId,$userGroup->id,$permissions,$permissionId); 
+                }
+            }
+
             $this->setResponse(\is_object($permission),function() use($permission) {   
                 // dispatch event
                 $this->dispatch('entity.permission.add',[
                     'permission' => $permission->toArray(),
+                    'public'     => empty($permission->relation_id),
+                    'type'       => $permission->relation_type,
                     'related'    => $permission->related->toArray(),
                     'entity'     => $permission->entity->toArray()
                 ]);
@@ -109,6 +119,8 @@ trait EntityPermissions
                 // dispatch event  
                 $this->dispatch('entity.permission.delete',[
                     'permission' => $permission->toArray(),
+                    'public'     => empty($permission->relation_id),
+                    'type'       => $permission->relation_type,
                     'related'    => $permission->related->toArray(),
                     'entity'     => $permission->entity->toArray()
                 ]);         
