@@ -12,7 +12,10 @@ namespace Arikaim\Core\Controllers;
 use Psr\Http\Message\ResponseInterface;
 use Arikaim\Core\Http\ApiResponse;
 use Arikaim\Core\Http\Response;
+use Arikaim\Core\Utils\Text;
+
 use Arikaim\Core\Controllers\Controller;
+use Closure;
 
 /**
  * Base class for all Api controllers
@@ -42,17 +45,16 @@ class ApiController extends Controller
     {
         parent::__construct($container);
 
-        $debug = $container->get('config')->get('debug',false);
-        $this->response = new ApiResponse($debug,Response::create());  
-
+        $this->response = new ApiResponse(Response::create());  
         // set default validator error callback
-        $this->onValidationError(function ($errors) {
+        $this->onValidationError(function($errors) {
+            $errors = $this->resolveValidationErrors($errors);
             $this->setErrors($errors);
         });
 
         $this->modelClass = null;
     }
-
+   
     /**
      * Dispatch event
      *
@@ -90,14 +92,16 @@ class ApiController extends Controller
      * Add message to response, first find in messages array if not found display name value as message 
      *
      * @param string $name  
-     * @return ApiResponse
+     * @return ApiController
      */
     public function message($name)
     {
         $message = $this->getMessage($name);
         $message = (empty($message) == true) ? $name : $message;
         
-        return $this->response->message($message);       
+        $this->response->message($message);      
+        
+        return $this;
     }
 
     /**
@@ -135,11 +139,13 @@ class ApiController extends Controller
      *
      * @param string $name
      * @param mixed $value
-     * @return ApiResponse
+     * @return ApiController
      */
     public function field($name, $value)
     {
-        return $this->response->field($name,$value);      
+        $this->response->field($name,$value);
+        
+        return $this;
     }
 
     /**
@@ -217,5 +223,40 @@ class ApiController extends Controller
         Response::emit($this->getResponse()); 
 
         exit();       
+    }
+
+    /**
+     * Resolve validation errors
+     *
+     * @param array $errors
+     * @return array
+     */
+    protected function resolveValidationErrors($errors)
+    {
+        $result = [];
+        if (\is_array($this->validationErrorMessages) == false) {
+            $this->validationErrorMessages = $this->get('errors')->loadValidationErrors();
+        }
+
+        foreach ($errors as $item) {
+            $message = $this->getValidationErrorMessage($item['error_code']);
+            $result[] = [
+                'filed_name' => $item['field_name'],
+                'message'    => (empty($message) == false) ? Text::render($message,$item['params']) : $item['error_code']  
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get validaiton error message
+     *
+     * @param string $code
+     * @return string|null
+     */
+    protected function getValidationErrorMessage($code)
+    {
+        return (isset($this->validationErrorMessages[$code]) == true) ? $this->validationErrorMessages[$code]['message'] : null;
     }
 }

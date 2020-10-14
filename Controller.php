@@ -14,6 +14,7 @@ use Psr\Http\Message\ResponseInterface;
 use Arikaim\Core\Collection\Arrays;
 use Arikaim\Core\Http\Response;
 use Arikaim\Core\System\Error\Errors;
+use Closure;
 
 /**
  * Base class for all Controllers
@@ -33,6 +34,13 @@ class Controller
      * @var array
      */
     protected $messages;
+
+    /**
+     * Validation error messages
+     *
+     * @var array|null
+     */
+    protected $validationErrorMessages = null;
 
     /**
      * Container
@@ -56,6 +64,20 @@ class Controller
     protected $params;
 
     /**
+     * Data validatin callback
+     *
+     * @var Closure
+    */
+    protected $dataValidCallback;
+
+    /**
+     * Data error callback
+     *
+     * @var Closure
+    */
+    protected $dataErrorCallback;
+
+    /**
      * Constructor
      *
      * @param Container $container
@@ -67,7 +89,8 @@ class Controller
         $this->params = $container->getItem('contoller.params',[]);
         $this->messages = [];
         $this->container = $container;
-    
+        $this->validationErrorMessages = null;
+        
         $this->init();
     }
 
@@ -229,31 +252,6 @@ class Controller
     }
 
     /**
-     * Load route params form route storage
-     *
-     * @param Request $request
-     * @return boolean
-     */
-    protected function loadRoute($request)
-    {
-        if ($this->has('routes') == false) {
-            return false;
-        }
-        $pattern = $request->getAttribute('route')->getPattern();
-        $route = $this->get('routes')->getRoute('GET',$pattern);
-        if ($route != false) {
-            // set route params
-            $this->page = $route['page_name'];
-            $this->setExtensionName($route['extension_name']);
-            $this->params = $route['options'];
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Load messages from html component json file
      *
      * @param string $componentName
@@ -264,6 +262,19 @@ class Controller
     {
         $messages = $this->get('page')->createHtmlComponent($componentName,[],$language)->getProperties();
         $this->messages = (empty($messages) == true) ? [] : $messages;
+    }
+
+    /**
+     * Load validation error messages
+     *
+     * @param string $componentName
+     * @param string $language
+     * @return void
+     */
+    public function loadValidationErrors($componentName, $language = null)
+    {
+        $messages = $this->get('page')->createHtmlComponent($componentName,[],$language)->getProperties();
+        $this->validationErrorMessages = (empty($messages) == true) ? [] : $messages;
     }
 
     /**
@@ -300,33 +311,51 @@ class Controller
     /**
      * Set callback for validation errors
      *
-     * @param \Closure $callback
+     * @param Closure $callback
      * @return void
     */
-    public function onValidationError(\Closure $callback)
+    public function onValidationError(Closure $callback)
     {
-        $function = function($event) use(&$callback) {
-            return $callback($event->toArray());
+        $function = function($data) use(&$callback) {
+            return $callback->call($this,$data);
         };
-        if ($this->has('event') == true) {
-            $this->get('event')->subscribeCallback('validator.error',$function,true);
-        }   
+
+        $this->dataErrorCallback = $function;
     }
     
     /**
      * Set callback for validation done
      *
-     * @param \Closure $callback
+     * @param Closure $callback
      * @return void
      */
-    public function onDataValid(\Closure $callback)
+    public function onDataValid(Closure $callback)
     {
-        $function = function($event) use(&$callback) {
-            return $callback($event->toCollection());
-        };
-        if ($this->has('event') == true) {
-            $this->get('event')->subscribeCallback('validator.valid',$function,true);
-        }
+        $function = function($data) use(&$callback) {
+            return $callback->call($this,$data); 
+        };       
+
+        $this->dataValidCallback = $function;
+    }
+
+    /**
+     * Get data validation callback
+     *
+     * @return Closure
+     */
+    public function getDataValidCallback()
+    {
+        return $this->dataValidCallback;
+    }
+
+    /**
+     * Get validation error callback
+     *
+     * @return void
+     */
+    public function getValidationErrorCallback()
+    {
+        return $this->dataErrorCallback;
     }
 
     /**
@@ -446,7 +475,7 @@ class Controller
      */
     public function getDefaultLanguage()
     {
-        return ($this->has('default.language') == true) ? $this->get('default.language') : 'en';       
+        return ($this->has('options') == true) ? $this->get('options')->get('default.language','en') : 'en';    
     }
 
     /**
@@ -521,26 +550,6 @@ class Controller
     }
 
     /**
-     * Resolve page name
-     *
-     * @param \Psr\Http\Message\ServerRequestInterface $request 
-     * @param string $paramName
-     * @return string|null
-     */
-    protected function resolveRouteParam($request, $paramName = 'page_name')
-    {            
-        // try from reutes db table
-        $route = $request->getAttribute('route');  
-        if ((\is_object($route) == true) && ($this->has('routes') == true)) {
-            $pattern = $route->getPattern();              
-            $routeData = $this->get('routes')->getRoute('GET',$pattern);            
-            return (\is_array($routeData) == true) ? $routeData[$paramName] : null;             
-        } 
-      
-        return null;
-    }
-
-    /**
      * Display page not found
      *    
      * @param ResponseInterface $response
@@ -582,5 +591,50 @@ class Controller
         $response->getBody()->write($xml);
 
         return $response->withHeader('Content-Type','text/xml');
+    }
+
+    /**
+     * Load route params form route storage
+     *
+     * @param Request $request
+     * @return boolean
+     */
+    protected function loadRoute($request)
+    {
+        if ($this->has('routes') == false) {
+            return false;
+        }
+        $pattern = $request->getAttribute('route')->getPattern();
+        $route = $this->get('routes')->getRoute('GET',$pattern);
+        if ($route != false) {
+            // set route params
+            $this->page = $route['page_name'];
+            $this->setExtensionName($route['extension_name']);
+            $this->params = $route['options'];
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Resolve page name
+     *
+     * @param \Psr\Http\Message\ServerRequestInterface $request 
+     * @param string $paramName
+     * @return string|null
+     */
+    protected function resolveRouteParam($request, $paramName = 'page_name')
+    {            
+        // try from reutes db table
+        $route = $request->getAttribute('route');  
+        if ((\is_object($route) == true) && ($this->has('routes') == true)) {
+            $pattern = $route->getPattern();              
+            $routeData = $this->get('routes')->getRoute('GET',$pattern);            
+            return (\is_array($routeData) == true) ? $routeData[$paramName] : null;             
+        } 
+      
+        return null;
     }
 }
