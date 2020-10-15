@@ -600,17 +600,13 @@ class Controller
      * @return boolean
      */
     protected function loadRoute($request)
-    {
-        if ($this->has('routes') == false) {
-            return false;
-        }
-        $pattern = $request->getAttribute('route')->getPattern();
-        $route = $this->get('routes')->getRoute('GET',$pattern);
-        if ($route != false) {
+    {       
+        $routeParams = $request->getAttribute('route_params');
+        if ($routeParams != false) {
             // set route params
-            $this->page = $route['page_name'];
-            $this->setExtensionName($route['extension_name']);
-            $this->params = $route['options'];
+            $this->page = $routeParams['page_name'];
+            $this->setExtensionName($routeParams['extension_name']);
+            $this->params = $routeParams['options'];
 
             return true;
         }
