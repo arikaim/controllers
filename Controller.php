@@ -623,14 +623,9 @@ class Controller
      */
     protected function resolveRouteParam($request, $paramName = 'page_name')
     {            
-        // try from reutes db table
-        $route = $request->getAttribute('route');  
-        if ((\is_object($route) == true) && ($this->has('routes') == true)) {
-            $pattern = $route->getPattern();              
-            $routeData = $this->get('routes')->getRoute('GET',$pattern);            
-            return (\is_array($routeData) == true) ? $routeData[$paramName] : null;             
-        } 
-      
-        return null;
+        // try from reutes db table       
+        $routeParams = $request->getAttribute('route_params');  
+                        
+        return $routeParams[$paramName] ?? null;                    
     }
 }
