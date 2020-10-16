@@ -622,8 +622,7 @@ class Controller
      * @return string|null
      */
     protected function resolveRouteParam($request, $paramName = 'page_name')
-    {            
-        // try from reutes db table       
+    {                      
         $routeParams = $request->getAttribute('route_params');  
                         
         return $routeParams[$paramName] ?? null;                    
