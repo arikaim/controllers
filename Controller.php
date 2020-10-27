@@ -13,7 +13,10 @@ use Psr\Http\Message\ResponseInterface;
 
 use Arikaim\Core\Collection\Arrays;
 use Arikaim\Core\Http\Response;
-use Arikaim\Core\System\Error\Errors;
+use Arikaim\Core\Http\Session;
+use Arikaim\Core\Utils\Factory;
+use Arikaim\Core\Utils\Number;
+use Arikaim\Core\Utils\DateTime;
 use Closure;
 
 /**
@@ -26,14 +29,14 @@ class Controller
      *
      * @var string|null
      */
-    protected $extensionName;   
+    protected $extensionName = null;   
 
     /**
      * Response messages
      *
      * @var array
      */
-    protected $messages;
+    protected $messages = [];
 
     /**
      * Validation error messages
@@ -54,14 +57,14 @@ class Controller
      *
      * @var string|null
      */
-    protected $page;
+    protected $pageName = null;
 
     /**
      * Controller params
      *
      * @var array
      */
-    protected $params;
+    protected $params = [];
 
     /**
      * Data validatin callback
@@ -78,20 +81,91 @@ class Controller
     protected $dataErrorCallback;
 
     /**
+     * Middleware classes
+     *
+     * @var array
+     */
+    protected $middleware = [];
+
+    /**
      * Constructor
      *
      * @param Container $container
      */
-    public function __construct($container)
-    { 
-        $this->extensionName = $container->getItem('contoller.extension');
-        $this->page = $container->getItem('contoller.page');
-        $this->params = $container->getItem('contoller.params',[]);
-        $this->messages = [];
+    public function __construct($container = null)
+    {      
         $this->container = $container;
-        $this->validationErrorMessages = null;
-        
+    
+        if (empty($container) == false) {
+            $this->boot();
+        }
+    
         $this->init();
+    }
+
+    /**
+     * Init options
+     *
+     * @return void
+     */
+    protected function boot()
+    {
+        $options = $this->container->get('options')->toArray();
+        // Set primary template           
+        $this->container->get('view')->setPrimaryTemplate($options['primary.template'] ?? null);          
+        // DatTime and numbers format
+        Number::setFormats($options['number.format.items'] ?? [],$options['number.format'] ?? null);
+        // Set time zone
+        DateTime::setTimeZone($options['time.zone'] ?? null);
+        // Set date and time formats          
+        DateTime::setDateFormats($options['date.format.items'] ?? [],$options['date.format'] ?? null);           
+        DateTime::setTimeFormats($options['time.format.items'] ?? [],$options['time.format'] ?? null);  
+    }
+
+    /**
+     * Add middleware
+     *
+     * @param string $class
+     * @param string $moduleName
+     * @return void
+     */
+    public function addMiddleware($class, $moduleName = null)
+    {
+        if (\is_object($class) == true) {
+            $class = \get_class($class);
+        }
+
+        if (\class_exists($class) == true) {
+            $this->middleware[] = $class;
+            return;
+        }
+
+        $moduleName = $moduleName ?? $class;
+        $moduleClass = Factory::getModuleClass($moduleName,$class);
+
+        if (\class_exists($moduleClass) == true) {
+            $this->middleware[] = $moduleClass;
+        }
+    }
+
+    /**
+     * Get controller middlewares
+     *
+     * @return array
+     */
+    public function getMiddlewares()
+    {
+        return $this->middleware;
+    }
+
+    /**
+     * Return true if route has middleware
+     *
+     * @return boolean
+     */
+    public function hasMiddleware()
+    {
+        return (count($this->middleware) > 0);
     }
 
     /**
@@ -101,7 +175,7 @@ class Controller
      */
     public function getParams()
     {
-        return (empty($this->params) == true) ? [] : $this->params;
+        return $this->params ?? [];
     }
 
     /**
@@ -113,7 +187,7 @@ class Controller
      */
     public function getParam($key, $default = null)
     {
-        return (isset($this->params[$key]) == true) ? $this->params[$key] : $default;
+        return $this->params[$key] ?? $default;
     }
 
     /**
@@ -155,7 +229,7 @@ class Controller
      */
     public function getPageName()
     {
-        return $this->page;
+        return $this->pageName;
     }
 
     /**
@@ -229,22 +303,13 @@ class Controller
      */
     public function __call($name, $arguments)
     {       
-        if (\method_exists($this,$name . 'Page') == true) {
-            $callable = [$this,$name . 'Page'];
-            $callback = function($arguments) use(&$callable) {
-                $this->loadRoute($arguments[0]);
-
-                // get language
-                $language = $this->getPageLanguage($arguments[2]);
-                $this->setCurrentLanguage($language);
-             
-                $result = $callable($arguments[0],$arguments[1],$arguments[2]);               
-                if ($result === false) {
-                    return $this->pageNotFound($arguments[1],$arguments[2],$language);
-                }               
-                $result = $this->pageLoad($arguments[0],$arguments[1],$arguments[2],$this->getPageName(),false,$language); 
-               
-                return ($result === false) ? $this->pageNotFound($arguments[1],$arguments[2],$language) : $result;                 
+        $name .= 'Page';
+        if (\method_exists($this,$name) == true) {   
+            $callback = function($arguments) use($name) {
+                $this->resolveRouteParams($arguments[0]);
+                ([$this,$name])($arguments[0],$arguments[1],$arguments[2]);               
+                           
+                return $this->pageLoad($arguments[0],$arguments[1],$arguments[2],null,null,false);                              
             };
 
             return $callback($arguments);
@@ -259,9 +324,11 @@ class Controller
      * @return void
      */
     public function loadMessages($componentName, $language = null)
-    {
-        $messages = $this->get('page')->createHtmlComponent($componentName,[],$language)->getProperties();
-        $this->messages = (empty($messages) == true) ? [] : $messages;
+    {       
+        if (empty($this->container) == false) {
+            $messages = $this->get('page')->createHtmlComponent($componentName,[],$language)->getProperties();
+            $this->messages = (empty($messages) == true) ? [] : $messages;    
+        }         
     }
 
     /**
@@ -285,7 +352,7 @@ class Controller
      */
     public function getMessage($name)
     {
-        return (isset($this->messages[$name]) == true) ? $this->messages[$name] : Arrays::getValue($this->messages,$name,'.');        
+        return $this->messages[$name] ?? Arrays::getValue($this->messages,$name,'.');        
     }
 
     /**
@@ -366,11 +433,11 @@ class Controller
      */
     public function getRequestParams($request)
     {
-        $params = \explode('/', $request->getAttribute('params'));
+        $params = \explode('/',$request->getAttribute('params'));
         $params = \array_filter($params);
         $vars = $request->getQueryParams();
 
-        return \array_merge($params, $vars);       
+        return \array_merge($params,$vars);       
     }
 
     /**
@@ -385,7 +452,7 @@ class Controller
     {
         $params = $request->getQueryParams();
 
-        return (isset($params[$name]) == true) ? $params[$name] : $default;  
+        return $params[$name] ?? $default;  
     }
 
     /**
@@ -399,8 +466,7 @@ class Controller
     {
         $params = $this->getRequestParams($request);
         foreach ($paramsKeys as $index => $value) {
-            $param = (isset($params[$index]) == true) ? $params[$index] : null;
-            $result[$value] = $param;
+            $result[$value] = $params[$index] ?? null;           
         }
         
         return $result;
@@ -432,8 +498,8 @@ class Controller
         if ($this->hasAccess($name,$type) == true) {
             return true;
         }
-       
-        $response = $this->get('errors')->loadSystemError($this->response);
+        $response = $this->get('responseFactory')->createResponse();
+        $response = $this->pageSystemError($response);
         Response::emit($response); 
           
         exit();
@@ -463,9 +529,10 @@ class Controller
     */
     public function getPageLanguage($data)
     {     
-        $language = (isset($data['language']) == true) ? $data['language'] : $this->get('page')->getLanguage();
+        $language = $data['language'] ?? Session::get('language',null);      
+        $language = $language ?? $this->get('options')->get('current.language',null);      
            
-        return (empty($language) == true) ? $this->getDefaultLanguage() : $language;           
+        return $language ?? $this->getDefaultLanguage();           
     }
 
     /**
@@ -479,56 +546,47 @@ class Controller
     }
 
     /**
-     * Set current language
-     *
-     * @param string|null $language
-     * @return void
-     */
-    public function setCurrentLanguage($language)
-    {
-        $language = (empty($language) == true) ? $this->getDefaultLanguage() : $language;
-
-        // add global variable 
-        $this->get('view')->addGlobal('current_language',$language);
-     
-        // set current language
-        $this->get('page')->setLanguage($language);
-    }   
-
-    /**
      * Load page
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param CollectionInterface $data   
-     * @param string|null $name Page name  
-     * @param boolean $loadRouteData 
+     * @param string|null     
+     * @param boolean $resolveParams 
      * @param string|null $language
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
     */
-    public function pageLoad($request, $response, $data, $pageName = null, $loadRouteData = true, $language = null)
+    public function pageLoad($request, $response, $data, $pageName = null, $language = null, $resolveParams = true)
     {       
-        if ($loadRouteData == true) {
-            $this->loadRoute($request);            
-            $pageName = (empty($this->page) == true) ? $pageName : $this->page;                  
+        if ($resolveParams == true) {
+            $this->resolveRouteParams($request);                        
         }
-        
-        if (empty($pageName) == true) {
-            $pageName = (isset($data['page_name']) == true) ? $data['page_name'] : $this->resolveRouteParam($request);
-        } 
-
         $data = (\is_object($data) == true) ? $data->toArray() : $data;
-        
-        if (empty($language) == true) {
-            $language = $this->getPageLanguage($data);        
-            $this->setCurrentLanguage($language);
-        }
-        
         if (empty($pageName) == true) {
-            return $this->pageNotFound($response,$data,$language);    
+            $pageName = $data['page_name'] ?? $this->resolveRouteParam($request,'page_name');
+        }
+
+        if (empty($pageName) == true) {
+            return $this->pageNotFound($response,$data);    
         } 
-     
-        return $this->get('page')->load($response,$pageName,$data,$language);
+        // get current page language
+        if (empty($language) == true) {          
+            $language = $this->getPageLanguage($data);              
+        }
+        // set current language
+        $this->get('page')->setLanguage($language);
+        $this->get('options')->set('current.language',$language,true);      
+
+        // current url path
+        $data['current_path'] = $request->getAttribute('current_path');
+        // save current page 
+        $this->get('options')->set('current.page',$pageName);
+        $this->get('options')->set('current.path',$data['current_path']);
+        
+        $component = $this->get('page')->render($pageName,$data,$language);
+        $response->getBody()->write($component->getHtmlCode());
+
+        return $response;
     }
 
     /**
@@ -538,14 +596,12 @@ class Controller
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param CollectionInterface $data   
      * @param string|null $redirectUrl 
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
     */
     public function redirect($request, $response, $data, $redirectUrl = null)
     {
-        if (empty($redirectUrl) == true) {
-            $redirectUrl = (isset($data['redirect_url']) == true) ? $data['redirect_url'] : $this->resolveRouteParam($request,'redirect_url');
-        } 
-
+        $redirectUrl = $redirectUrl ?? $data['redirect_url'] ?? $this->resolveRouteParam($request,'redirect_url');
+         
         return $response->withHeader('Location',$redirectUrl);
     }
 
@@ -554,15 +610,14 @@ class Controller
      *    
      * @param ResponseInterface $response
      * @param array $data
-     * @param string|null $language
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
-    public function pageNotFound($response, $data = [], $language = null)
-    {     
-        $language = (empty($language) == true) ? $this->getPageLanguage($data) : $language;
-        $pageName = Errors::getErrorPageName(Errors::PAGE_NOT_FOUND,$this->getExtensionName());
+    public function pageNotFound($response, array $data = [])
+    {          
+        $component = $this->get('page')->renderPageNotFound($data);           
+        $response->getBody()->write($component->getHtmlCode());
 
-        return $this->get('page')->load($response,$pageName,$data,$language);       
+        return $response;        
     }
 
     /**
@@ -570,13 +625,14 @@ class Controller
      *    
      * @param ResponseInterface $response
      * @param array $data
-     * @return Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function pageSystemError($response, $data = [])
     {     
-        $language = $this->getPageLanguage($data);
+        $component = $this->get('page')->renderSystemError($data); 
+        $response->getBody()->write($component->getHtmlCode());
 
-        return $this->get('errors')->loadSystemError($response,$data,$language,$this->getExtensionName());    
+        return $response;             
     }
 
     /**
@@ -594,19 +650,51 @@ class Controller
     }
 
     /**
-     * Load route params form route storage
+     * Log error
+     *
+     * @param string $message
+     * @param array $context
+     * @return bool
+     */
+    public function logError($message, array $context = [])
+    {
+        if ($this->has('logger') == true) {
+            return $this->get('logger')->error($message,$context);
+        }
+
+        return false;
+    }
+
+    /**
+     * Log message
+     *
+     * @param string $message
+     * @param array $context
+     * @return bool
+     */
+    public function logInfo($message, array $context = [])
+    {
+        if ($this->has('logger') == true) {
+            return $this->get('logger')->info($message,$context);
+        }
+
+        return false;
+    }
+
+    /**
+     * Resolve route params
      *
      * @param Request $request
      * @return boolean
      */
-    protected function loadRoute($request)
+    protected function resolveRouteParams($request)
     {       
         $routeParams = $request->getAttribute('route_params');
-        if ($routeParams != false) {
+        if ($routeParams !== false) {
             // set route params
-            $this->page = $routeParams['page_name'];
-            $this->setExtensionName($routeParams['extension_name']);
-            $this->params = $routeParams['options'];
+            $this->pageName = $routeParams['page_name'] ?? null;
+            $this->extensionName = $routeParams['extension_name'] ?? null;
+            $this->params = $routeParams['options'] ?? [];
 
             return true;
         }
@@ -621,7 +709,7 @@ class Controller
      * @param string $paramName
      * @return string|null
      */
-    protected function resolveRouteParam($request, $paramName = 'page_name')
+    protected function resolveRouteParam($request, $paramName)
     {                      
         $routeParams = $request->getAttribute('route_params');  
                         

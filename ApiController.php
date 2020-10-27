@@ -10,9 +10,9 @@
 namespace Arikaim\Core\Controllers;
 
 use Psr\Http\Message\ResponseInterface;
-use Arikaim\Core\Http\ApiResponse;
 use Arikaim\Core\Http\Response;
 use Arikaim\Core\Utils\Text;
+use Arikaim\Core\Utils\Utils;
 
 use Arikaim\Core\Controllers\Controller;
 use Closure;
@@ -23,38 +23,67 @@ use Closure;
 class ApiController extends Controller
 {    
     /**
-     * Api response
-     *
-     * @var ApiResponse
-     */
-    protected $response;
-
-    /**
      * Model class name
      *
      * @var string
      */
-    protected $modelClass;
+    protected $modelClass = null;
+
+    /**
+     * response result
+     *
+     * @var array
+     */
+    protected $result;
+
+    /**
+     * Errors list
+     *
+     * @var array
+     */
+    protected $errors = []; 
+
+    /**
+     * pretty format json 
+     *
+     * @var bool
+     */
+    protected $prettyFormat = false;
 
     /**
      * Constructor
      *
      * @param Container $container
      */
-    public function __construct($container) 
+    public function __construct($container = null) 
     {
         parent::__construct($container);
-
-        $this->response = new ApiResponse(Response::create());  
+       
         // set default validator error callback
         $this->onValidationError(function($errors) {
             $errors = $this->resolveValidationErrors($errors);
             $this->setErrors($errors);
         });
 
-        $this->modelClass = null;
+        $this->result = [
+            'result' => null,
+            'status' => 'ok',  
+            'code'   => 200, 
+            'errors' => []
+        ];  
     }
    
+    /**
+     * Set errors 
+     *
+     * @param array $errors
+     * @return void
+     */
+    public function setErrors(array $errors)
+    {
+        $this->errors = $errors;
+    }
+
     /**
      * Dispatch event
      *
@@ -89,89 +118,7 @@ class ApiController extends Controller
     }
 
     /**
-     * Add message to response, first find in messages array if not found display name value as message 
-     *
-     * @param string $name  
-     * @return ApiController
-     */
-    public function message($name)
-    {
-        $message = $this->getMessage($name);
-        $message = (empty($message) == true) ? $name : $message;
-        
-        $this->response->message($message);      
-        
-        return $this;
-    }
-
-    /**
-     * Set error, first find in messages array if not found display name value as error
-     *
-     * @param string $name
-     * @return ApiController
-     */
-    public function error($name)
-    {
-        $message = $this->getMessage($name);
-        if (empty($message) == true) {
-            // check for system error
-            $message = $this->get('errors')->get($name,null);
-        }
-        $message = (empty($message) == true) ? $name : $message;        
-        $this->response->setError($message);
-
-        return $this;
-    }
-
-    /**
-     * Add errors
-     *
-     * @param array $errors
-     * @return void
-     */
-    public function addErrors(array $errors)
-    {
-        $this->response->addErrors($errors);
-    }
-
-    /**
-     * Set response field
-     *
-     * @param string $name
-     * @param mixed $value
-     * @return ApiController
-     */
-    public function field($name, $value)
-    {
-        $this->response->field($name,$value);
-        
-        return $this;
-    }
-
-    /**
-     * Set response 
-     *
-     * @param boolean $condition
-     * @param array|Closure $data
-     * @param string|Closure $error
-     * @return mixed
-    */
-    public function setResponse($condition, $data, $error)
-    {
-        if (\is_string($error) == true) {
-            $message = $this->getMessage($error);
-            $error = (empty($message) == true) ? $error : $message;
-        }
-        if (\is_string($data) == true) {
-            $message = $this->getMessage($data);
-            $data = (empty($message) == true) ? $data : $message;
-        }
-        
-        return $this->response->setResponse($condition,$data,$error);
-    }
-
-    /**
-     * Forward calls to $this->response and run Controller function if exist
+     * Run {method name}Controller function if exist
      *
      * @param string $name
      * @param array $arguments
@@ -179,14 +126,12 @@ class ApiController extends Controller
      */
     public function __call($name, $arguments)
     {
-        if (\is_callable([$this->response,$name]) == true) {
-            return \call_user_func_array([$this->response,$name], $arguments);     
-        }
-      
-        if (\method_exists($this,$name . 'Controller') == true) {
-            $callable = [$this,$name . 'Controller'];
-            $callback = function($arguments) use(&$callable) {
-                $callable($arguments[0],$arguments[1],$arguments[2]);
+        $name .= 'Controller';
+        if (\method_exists($this,$name) == true) {
+            $callback = function($arguments) use($name) {
+                $this->resolveRouteParams($arguments[0]);
+                ([$this,$name])($arguments[0],$arguments[1],$arguments[2]);
+
                 return $this->getResponse();                 
             };
             
@@ -195,15 +140,17 @@ class ApiController extends Controller
     }
 
     /**
-     * Return response 
-     *  
-     * @param boolean $raw
-     * 
-     * @return ResponseInterface
+     * Set error message
+     *
+     * @param string $errorMessage
+     * @param boolean $condition
+     * @return void
      */
-    public function getResponse($raw = false)
+    public function setError($errorMessage, $condition = true) 
     {
-        return $this->response->getResponse($raw);
+        if ($condition !== false) {
+            \array_push($this->errors,$errorMessage);  
+        }               
     }
 
     /**
@@ -223,6 +170,16 @@ class ApiController extends Controller
         Response::emit($this->getResponse()); 
 
         exit();       
+    }
+
+    /**
+     * Clear all errors.
+     *
+     * @return void
+    */
+    public function clearErrors()
+    {
+        $this->errors = [];
     }
 
     /**
@@ -258,5 +215,200 @@ class ApiController extends Controller
     protected function getValidationErrorMessage($code)
     {
         return (isset($this->validationErrorMessages[$code]) == true) ? $this->validationErrorMessages[$code]['message'] : null;
+    }
+
+    /**
+     * Return true if response have error
+     *
+     * @return boolean
+     */
+    public function hasError() 
+    {    
+        return (count($this->errors) > 0);         
+    }
+
+    /**
+     * Return json 
+     * 
+     * @param boolean $raw
+     * @return string
+     */
+    public function getResponseJson($raw = false)
+    {
+        $this->result = \array_merge($this->result,[
+            'errors'          => $this->errors,
+            'executeion_time' => Utils::getExecutionTime(),
+            'status'          => ($this->hasError() == true) ? 'error' : 'ok',
+            'code'            => ($this->hasError() == true) ? 400 : 200           
+        ]);
+
+        $result = ($raw == true) ? $this->result['result'] : $this->result;
+    
+        return ($this->prettyFormat == true) ? Utils::jsonEncode($result) : \json_encode($result,true);      
+    }    
+
+    /**
+     * Return response 
+     *  
+     * @param boolean $raw
+     * 
+     * @return ResponseInterface
+     */
+    public function getResponse($raw = false)
+    {
+        $json = $this->getResponseJson($raw);
+
+        $response = $this->get('responseFactory')->createResponse();
+        $response->getBody()->write($json);
+
+        return $response
+            ->withStatus($this->result['code'])
+            ->withHeader('Content-Type','application/json');      
+    }
+
+    /**
+     * Set field to result array 
+     *
+     * @param string $name
+     * @param mixed $value
+     * @return void
+     */
+    public function setResultField($name, $value)
+    {      
+        $this->result['result'][$name] = $value;
+    }
+
+    /**
+     * Set result field 
+     *
+     * @param string $name
+     * @param mixed $value
+     * @return Self
+     */
+    public function field($name, $value)
+    {
+        $this->setResultField($name,$value);
+
+        return $this;
+    }
+
+    /**
+     * Add message to response, first find in messages array if not found display name value as message 
+     *
+     * @param string $name  
+     * @return ApiController
+     */
+    public function message($name)
+    {
+        $message = $this->getMessage($name);
+        $message = $message ?? $name;
+        
+        $this->field('message',$message);  
+        
+        return $this;
+    }
+
+    /**
+     * Set error, first find in messages array if not found display name value as error
+     *
+     * @param string $name
+     * @return ApiController
+     */
+    public function error($name)
+    {
+        $message = $this->getMessage($name);
+        if (empty($message) == true) {
+            // check for system error
+            $message = $this->get('errors')->get($name,null);
+        }
+        $message = (empty($message) == true) ? $name : $message;        
+        $this->setError($message);
+
+        return $this;
+    }
+
+    /**
+     * Set json pretty format to true
+     *
+     * @return Self
+     */
+    public function useJsonPrettyformat()
+    {
+        $this->prettyFormat = true;
+
+        return $this;
+    }
+
+    /**
+     * Add errors
+     *
+     * @param array $errors
+     * @return void
+     */
+    public function addErrors(array $errors)
+    {      
+        $this->errors = \array_merge($this->errors,$errors);       
+    }
+
+     /**
+     * Set error message
+     *
+     * @param string $errorMessage
+     * @param boolean $condition
+     * @return Self
+     */
+    public function withError($errorMessage, $condition = true) 
+    {
+        $this->setError($errorMessage,$condition);
+
+        return $this;
+    }
+
+    /**
+     * Set response 
+     *
+     * @param boolean $condition
+     * @param array|Closure $data
+     * @param string|Closure $error
+     * @return mixed
+    */
+    public function setResponse($condition, $data, $error)
+    {
+        if ($condition !== false) {
+            if (\is_callable($data) == true) {
+                return $data();
+            } 
+            if (\is_array($data) == true) {
+                return $this->setResult($data);
+            }
+            if (\is_string($data) == true) {
+                return $this->message($data);
+            }
+        } else {
+            return (\is_callable($error) == true) ? $error() : $this->setError($error);          
+        }
+    }
+
+    /**
+     * Set response result
+     *
+     * @param mixed $data
+     * @return Self
+     */
+    public function setResult($data) 
+    {
+        $this->result['result'] = $data;   
+
+        return $this;
+    }
+
+    /**
+     * Return errors count
+     *
+     * @return int
+     */
+    public function getErrorCount()
+    {
+        return count($this->errors);
     }
 }

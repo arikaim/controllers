@@ -18,25 +18,21 @@ use Arikaim\Core\Controllers\ApiController;
 class ControlPanelApiController extends ApiController implements ControlPanelApiInterface
 {    
     /**
-     * Forward calls to $this->response and run Controller function if exist
+     * Rrun {method name}Controller function if exist
      *
      * @param string $name
      * @param array $arguments
      * @return mixed
      */
     public function __call($name, $arguments)
-    {
-        if (\is_callable([$this->response,$name]) == true) {
-            return \call_user_func_array([$this->response,$name], $arguments);     
-        }
-      
-        if (\method_exists($this,$name . 'Controller') == true) {
-            $callable = [$this,$name . 'Controller'];
-            $callback = function($arguments) use(&$callable) {
-
+    {  
+        $name .= 'Controller';
+        if (\method_exists($this,$name) == true) {
+            $callback = function($arguments) use($name) {
                 $this->requireControlPanelPermission();
-                
-                $callable($arguments[0],$arguments[1],$arguments[2]);
+                $this->resolveRouteParams($arguments[0]);
+                ([$this,$name])($arguments[0],$arguments[1],$arguments[2]);
+
                 return $this->getResponse();                 
             };
             return $callback($arguments);

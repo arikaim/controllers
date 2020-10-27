@@ -50,12 +50,22 @@ trait Status
         $this->requireControlPanelPermission();
 
         $this->onDataValid(function($data) {
+            $model = Model::create($this->getModelClass(),$this->getExtensionName());
+            if (\is_object($model) == false) {
+                $this->error('Not vlaid model.');
+                return false;
+            }
             $status = $data->get('status',1);                
             $uuid = $data->get('uuid');
-          
-            $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-            $result = (\is_object($model) == true) ? $model->setStatus($status) : false; 
-        
+            
+            if (\is_array($uuid) == true) {
+                $model = $model->findMultiple($uuid);
+                $result = $model->update(['status' => $status]);
+            } else {
+                $model = $model->findById($uuid);
+                $result = (\is_object($model) == true) ? $model->setStatus($status) : false; 
+            }
+           
             $this->setResponse($result,function() use($uuid,$status) {              
                 $this
                     ->message($this->getStatusChangedMessage())
