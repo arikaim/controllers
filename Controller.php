@@ -530,7 +530,6 @@ class Controller
     public function getPageLanguage($data)
     {     
         $language = $data['language'] ?? Session::get('language',null);      
-        $language = $language ?? $this->get('options')->get('current.language',null);      
            
         return $language ?? $this->getDefaultLanguage();           
     }
@@ -575,8 +574,8 @@ class Controller
         }
         // set current language
         $this->get('page')->setLanguage($language);
-        $this->get('options')->set('current.language',$language,true);      
-
+        Session::set('language',$language);  
+           
         // current url path
         $data['current_path'] = $request->getAttribute('current_path');
         // save current page 
