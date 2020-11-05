@@ -56,7 +56,7 @@ trait FileDownload
     {
         if ($this->get('storage')->has($filePath,$filesystem) == true) {
             $data = $this->get('storage')->readStream($filePath,$filesystem);  
-            $fileName = basename($filePath);  
+            $fileName = \basename($filePath);  
            
             return $this->downloadFileHeaders($response,$fileName,$data);            
         } 

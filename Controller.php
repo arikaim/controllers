@@ -583,6 +583,9 @@ class Controller
         $this->get('options')->set('current.path',$data['current_path']);
         
         $component = $this->get('page')->render($pageName,$data,$language);
+        // set current css framework
+        $this->get('options')->set('current.framework',$this->get('page')->getFramework());
+
         $response->getBody()->write($component->getHtmlCode());
 
         return $response;
