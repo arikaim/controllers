@@ -14,9 +14,11 @@ use Psr\Http\Message\ResponseInterface;
 use Arikaim\Core\Collection\Arrays;
 use Arikaim\Core\Http\Response;
 use Arikaim\Core\Http\Session;
+use Arikaim\Core\Http\Cookie;
 use Arikaim\Core\Utils\Factory;
 use Arikaim\Core\Utils\Number;
 use Arikaim\Core\Utils\DateTime;
+
 use Closure;
 
 /**
@@ -529,8 +531,18 @@ class Controller
     */
     public function getPageLanguage($data)
     {     
-        $language = $data['language'] ?? Session::get('language',null);      
-           
+        $language = $data['language'] ?? '';
+        if (empty($language) == false) {
+            return $language;
+        }
+        
+        $language = Cookie::get('language',null);     
+        if (empty($language) == false) {
+            return $language;
+        } 
+
+        $language = Session::get('language',null);
+
         return $language ?? $this->getDefaultLanguage();           
     }
 
@@ -572,10 +584,11 @@ class Controller
         if (empty($language) == true) {          
             $language = $this->getPageLanguage($data);              
         }
+   
         // set current language
         $this->get('page')->setLanguage($language);
         Session::set('language',$language);  
-           
+    
         // current url path
         $data['current_path'] = $request->getAttribute('current_path');
         // save current page 
