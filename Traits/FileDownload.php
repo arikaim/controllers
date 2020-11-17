@@ -32,6 +32,7 @@ trait FileDownload
         $stream = ($stream instanceof StreamInterface) ? $stream : Psr7\stream_for($stream);
 
         return $response
+            ->withoutHeader('Cache-Control')
             ->withHeader('Content-Type','application/force-download')
             ->withHeader('Content-Type','application/octet-stream')
             ->withHeader('Content-Type','application/download')

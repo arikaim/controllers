@@ -605,19 +605,33 @@ class Controller
     }
 
     /**
-     * Redirect
+     * Set redirect headers
      *
-     * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
-     * @param CollectionInterface $data   
-     * @param string|null $redirectUrl 
+     * @param string $url
      * @return \Psr\Http\Message\ResponseInterface
-    */
-    public function redirect($request, $response, $data, $redirectUrl = null)
+     */
+    public function withRedirect($response, $url)
     {
-        $redirectUrl = $redirectUrl ?? $data['redirect_url'] ?? $this->resolveRouteParam($request,'redirect_url');
-         
-        return $response->withHeader('Location',$redirectUrl);
+        return $this
+            ->noCacheHeaders($response)      
+            ->withHeader('Location',$url)
+            ->withStatus(307);
+    }
+
+    /**
+     * Set no cache in Cache-Control
+     *
+     * @param @return \Psr\Http\Message\ResponseInterface
+     * @return @return \Psr\Http\Message\ResponseInterface
+     */
+    public function noCacheHeaders($response)
+    {
+        return $response
+            ->withoutHeader('Cache-Control')
+            ->withHeader('Cache-Control','no-cache, must-revalidate')           
+            ->withHeader('Pragma','no-cache')              
+            ->withHeader('Expires','Sat, 26 Jul 1997 05:00:00 GMT');  
     }
 
     /**
