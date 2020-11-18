@@ -524,6 +524,21 @@ class Controller
     }
 
     /**
+     * Return true if page load is with new language code
+     *
+     * @param array $data
+     * @return boolean
+     */
+    public function isLanguageChange($data)
+    {
+        if (isset($data['language']) == false) {
+            return false;
+        }
+
+        return (Session::get('language') != $data['language']);
+    }
+
+    /**
      * Get page language
      *
      * @param array $data
@@ -588,7 +603,7 @@ class Controller
         // set current language
         $this->get('page')->setLanguage($language);
         Session::set('language',$language);  
-    
+       
         // current url path
         $data['current_path'] = $request->getAttribute('current_path');
         // save current page 
@@ -629,7 +644,7 @@ class Controller
     {
         return $response
             ->withoutHeader('Cache-Control')
-            ->withHeader('Cache-Control','no-cache, must-revalidate')           
+            ->withHeader('Cache-Control','no-store, no-cache, must-revalidate, max-age=0')           
             ->withHeader('Pragma','no-cache')              
             ->withHeader('Expires','Sat, 26 Jul 1997 05:00:00 GMT');  
     }
