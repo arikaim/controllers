@@ -588,7 +588,7 @@ class Controller
             $this->resolveRouteParams($request);                        
         }
         $data = (\is_object($data) == true) ? $data->toArray() : $data;
-        if (empty($pageName) == true) {
+        if (empty($pageName) == true || \is_array($pageName) == true) {
             $pageName = $data['page_name'] ?? $this->resolveRouteParam($request,'page_name');
         }
 
