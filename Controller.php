@@ -508,6 +508,19 @@ class Controller
     }
 
     /**
+     * Return true if user have control panel access
+     *
+     * @return boolean
+     */
+    public function hasControlPanelAccess()
+    {
+        $permissionName = $this->get('access')->getControlPanelPermission();
+        $type = $this->get('access')->getFullPermissions();
+
+        return $this->hasAccess($permissionName,$type);
+    }
+
+    /**
      * Return true if user have access permission
      *
      * @param string $name
@@ -611,9 +624,6 @@ class Controller
         $this->get('options')->set('current.path',$data['current_path']);
         
         $component = $this->get('page')->render($pageName,$data,$language);
-        // set current css framework
-        $this->get('options')->set('current.framework',$this->get('page')->getFramework());
-
         $response->getBody()->write($component->getHtmlCode());
 
         return $response;
@@ -658,7 +668,8 @@ class Controller
      */
     public function pageNotFound($response, array $data = [])
     {          
-        $component = $this->get('page')->renderPageNotFound($data);           
+        $language = $this->getPageLanguage($data);
+        $component = $this->get('page')->renderPageNotFound($data,$language);           
         $response->getBody()->write($component->getHtmlCode());
 
         return $response;        
@@ -673,7 +684,13 @@ class Controller
      */
     public function pageSystemError($response, $data = [])
     {     
-        $component = $this->get('page')->renderSystemError($data); 
+        $language = $this->getPageLanguage($data);
+
+        $component = $this->get('page')->renderSystemError($data,$language); 
+        echo $component->getHtmlCode();
+        
+        exit();
+
         $response->getBody()->write($component->getHtmlCode());
 
         return $response;             

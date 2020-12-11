@@ -58,7 +58,6 @@ trait FileDownload
         if ($this->get('storage')->has($filePath,$filesystem) == true) {
             $data = $this->get('storage')->readStream($filePath,$filesystem);  
             $fileName = \basename($filePath);  
-           
             return $this->downloadFileHeaders($response,$fileName,$data);            
         } 
         
@@ -88,21 +87,16 @@ trait FileDownload
      * View image
      *
      * @param \Psr\Http\Message\ResponseInterface $response
-     * @param string $imagePath 
-     * @param string|null $imgeNotFoundPath 
-     * @param string $filesystem 
+     * @param string $imagePath   
+     * @param string $filesystem
+     * @param string|null $mimeType  
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function viewImage($response, $imagePath, $imgeNotFoundPath = null, $filesystem = 'storage')
-    {
-        if ($this->get('storage')->has($imagePath,$filesystem) == true) {
-            $data = $this->get('storage')->read($imagePath,$filesystem);
-            $type = File::getMimetype($this->get('storage')->getFullPath($imagePath,$filesystem));
-        } else {
-            $data = $this->get('storage')->read($imgeNotFoundPath,$filesystem);
-            $type = File::getMimetype($this->get('storage')->getFullPath($imgeNotFoundPath,$filesystem)); 
-        }
-        
+    public function viewImage($response, $imagePath, $filesystem = 'storage', $mimeType = null)
+    { 
+        $data = $this->get('storage')->read($imagePath,$filesystem);
+        $type = (empty($mimeType) == true) ? File::getMimetype($this->get('storage')->getFullPath($imagePath,$filesystem)) : $mimeType;
+
         return $this->viewImageHeaders($response,$type,$data);
     }
 }

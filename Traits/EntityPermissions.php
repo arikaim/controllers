@@ -49,8 +49,12 @@ trait EntityPermissions
         $this->onDataValid(function($data) {   
             $users = Model::Users();                    
             $entityId = $data->get('entity');
-            $user = $data->get('user',null);
+            $user = \trim($data->get('user',null));
+            $user = (empty($user) == true) ? $this->getUserId() : $user;
+            
             $group = $data->get('group',null);
+            $type = $data->get('type','user');
+
             $permissions = $data->get('permissions','full');
             $permissionName = $data->get('permission_name',null);
 
@@ -64,24 +68,32 @@ trait EntityPermissions
             $permissionId = (\is_object($permissionModel) == true) ? $permissionModel->id : null;
             $permission = null;
 
-            $userFound = $users->findUser($user);
-            if (\is_object($userFound) == true) {
-                $permission = $model->addUserPermission($entityId,$userFound->id,$permissions,$permissionId); 
+            if ($type == 'user') {
+                $userFound = $users->findUser($user);
+                if (\is_object($userFound) == true) {
+                    $permission = $model->addUserPermission($entityId,$userFound->id,$permissions,$permissionId); 
+                } else {
+                    $this->error('errors.permission.user');
+                    return;
+                }              
             } else {
                 // add group permission
                 $userGroup = Model::UserGroups()->findByColumn($group,['id','uuid','slug']);
                 if (\is_object($userGroup) == true) {
                     $permission = $model->addGroupPermission($entityId,$userGroup->id,$permissions,$permissionId); 
-                }
+                } else {
+                    $this->error('errors.permission.group');
+                    return;
+                }   
             }
-
+         
             $this->setResponse(\is_object($permission),function() use($permission) {   
                 // dispatch event
                 $this->dispatch('entity.permission.add',[
                     'permission' => $permission->toArray(),
                     'public'     => empty($permission->relation_id),
                     'type'       => $permission->relation_type,
-                    'related'    => $permission->related->toArray(),
+                    'related'    => ($permission->relation_type == 'user') ? $permission->related->toArray() : null,
                     'entity'     => $permission->entity->toArray()
                 ]);
 
@@ -109,10 +121,9 @@ trait EntityPermissions
             $permission = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
             
             if (\is_object($permission) == false) {
-                $this->error('errors.id');
+                $this->error('errors.permission.id');
                 return;
-            }
-        
+            }         
             $result = $permission->delete();
 
             $this->setResponse($result,function() use($uuid,$permission) {   
@@ -121,7 +132,7 @@ trait EntityPermissions
                     'permission' => $permission->toArray(),
                     'public'     => empty($permission->relation_id),
                     'type'       => $permission->relation_type,
-                    'related'    => $permission->related->toArray(),
+                    'related'    => ($permission->relation_type == 'user') ? $permission->related->toArray() : null,
                     'entity'     => $permission->entity->toArray()
                 ]);         
 

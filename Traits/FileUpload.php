@@ -9,6 +9,7 @@
 */
 namespace Arikaim\Core\Controllers\Traits;
 
+use GuzzleHttp\Psr7\ServerRequest;
 use Arikaim\Core\Utils\Path;
 
 /**
@@ -67,26 +68,33 @@ trait FileUpload
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param string $path Destinatin path relative to storage path
      * @param boolean $relative
+     * @param boolean $moveFile
      * @return array
      */
-    public function uploadFiles($request, $path = '', $relative = true)
+    public function uploadFiles($request, $path = '', $relative = true, $moveFile = true)
     {
         $fieldName = $this->getUplaodFieldName();
         $files = $request->getUploadedFiles();
         $destinationPath = ($relative == true) ? Path::STORAGE_PATH . $path : $path;
-    
         $uploadedFiles = (\is_object($files[$fieldName]) == true) ? [$files[$fieldName]] : $files[$fieldName];
     
         $result = [];
         foreach ($uploadedFiles as $file) {
             if ($file->getError() === UPLOAD_ERR_OK) {                   
-                $fileName = $destinationPath . $file->getClientFilename();              
-                $file->moveTo($fileName);         
+                $fileName = $destinationPath . $file->getClientFilename();   
+                if ($moveFile == true) {
+                    $file->moveTo($fileName);       
+                }                             
             }
+
             $result[] = [
-                'name'  => $file->getClientFilename(),
-                'error' => ($file->isMoved() == false) ? $file->getError() : false
-            ];
+                'name'       => $file->getClientFilename(),              
+                'size'       => $file->getSize(),              
+                'file_name'  => $file->getClientFilename(), 
+                'media_type' => $file->getClientMediaType(),
+                'moved'      => $file->isMoved(),
+                'error'      => ($file->isMoved() == false) ? $file->getError() : false
+            ];         
         }
 
         return $result;
