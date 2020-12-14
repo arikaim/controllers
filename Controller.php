@@ -680,17 +680,14 @@ class Controller
      *    
      * @param ResponseInterface $response
      * @param array $data
+     * @param string $templateName
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function pageSystemError($response, $data = [])
+    public function pageSystemError($response, $data = [], $templateName = 'system')
     {     
         $language = $this->getPageLanguage($data);
 
-        $component = $this->get('page')->renderSystemError($data,$language); 
-        echo $component->getHtmlCode();
-        
-        exit();
-
+        $component = $this->get('page')->renderSystemError($data,$language,$templateName); 
         $response->getBody()->write($component->getHtmlCode());
 
         return $response;             
