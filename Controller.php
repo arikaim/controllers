@@ -15,9 +15,11 @@ use Arikaim\Core\Collection\Arrays;
 use Arikaim\Core\Http\Response;
 use Arikaim\Core\Http\Session;
 use Arikaim\Core\Http\Cookie;
+use Arikaim\Core\Http\Url;
 use Arikaim\Core\Utils\Factory;
 use Arikaim\Core\Utils\Number;
 use Arikaim\Core\Utils\DateTime;
+use Arikaim\Core\Routes\Route;
 
 use Closure;
 
@@ -288,10 +290,48 @@ class Controller
     }
 
     /**
+     * Get page url 
+     *
+     * @param string $path
+     * @param boolean $relative
+     * @param string|null $language
+     * @return string
+     */
+    public function getPageUrl($path = '', $relative = false, $language = null)
+    {      
+        return Url::getUrl($path,$relative,$language,$this->getDefaultLanguage());
+    }
+
+     /**
+     * Get page url
+     *
+     * @param string $routeName
+     * @param string $extension
+     * @param array $params
+     * @param boolean $relative
+     * @param string|null $language
+     * @return string|false
+     */
+    public function getRouteUrl($routeName, $extension, $params = [], $language = null, $relative = false)
+    {
+        $route = $this->container->get('routes')->getRoutes([
+            'name'           => $routeName,
+            'extension_name' => $extension
+        ]);
+
+        if (isset($route[0]) == false) {
+            return false;
+        }
+        $urlPath = Route::getRouteUrl($route[0]['pattern'],$params);
+        
+        return Url::getUrl($urlPath,$relative,$language);
+    }
+
+    /**
      * Init controller, override this method in child classes
      *
      * @return void
-     */
+    */
     public function init()
     {
     }
