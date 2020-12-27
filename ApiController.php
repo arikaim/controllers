@@ -30,7 +30,7 @@ class ApiController extends Controller
     protected $modelClass = null;
 
     /**
-     * response result
+     * Response result
      *
      * @var array
      */
@@ -65,14 +65,24 @@ class ApiController extends Controller
             $this->setErrors($errors);
         });
 
+        $this->clearResult(); 
+    }
+    
+    /**
+     * Clear result 
+     *
+     * @return void
+     */
+    public function clearResult()
+    {
         $this->result = [
             'result' => null,
             'status' => 'ok',  
             'code'   => 200, 
             'errors' => []
-        ];  
+        ]; 
     }
-   
+
     /**
      * Set errors 
      *
@@ -243,8 +253,10 @@ class ApiController extends Controller
         ]);
 
         $result = ($raw == true) ? $this->result['result'] : $this->result;
-    
-        return ($this->prettyFormat == true) ? Utils::jsonEncode($result) : \json_encode($result,true);      
+        $code = ($this->prettyFormat == true) ? Utils::jsonEncode($result) : \json_encode($result,true);      
+        $progressEnd = $this->result['result']['progress_end'] ?? false;
+
+        return (($progressEnd == true) && ($raw == false)) ? ',' . $code .']' : $code;
     }    
 
     /**
@@ -368,8 +380,8 @@ class ApiController extends Controller
      * Set response 
      *
      * @param boolean $condition
-     * @param array|Closure $data
-     * @param string|Closure $error
+     * @param array|string|Closure $data
+     * @param string|string|Closure $error
      * @return mixed
     */
     public function setResponse($condition, $data, $error)
