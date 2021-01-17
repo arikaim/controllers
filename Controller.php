@@ -115,8 +115,14 @@ class Controller
     protected function boot(): void
     {
         $options = $this->container->get('options')->toArray();
-        // Set primary template                 
-        $this->container->get('view')->setPrimaryTemplate($options['primary.template'] ?? null);          
+        
+        // Set primary template        
+        $primaryTemplate = $options['primary.template'] ?? null;
+        if (empty($primaryTemplate) == true) {
+            $primaryTemplate = $this->container->get('options')->read('primary.template','blog');
+        }         
+        $this->container->get('view')->setPrimaryTemplate($primaryTemplate);      
+            
         // DatTime and numbers format
         Number::setFormats($options['number.format.items'] ?? [],$options['number.format'] ?? null);
         // Set time zone
