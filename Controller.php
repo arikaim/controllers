@@ -52,9 +52,9 @@ class Controller
     /**
      * Container
      *
-     * @var Container
+     * @var Container|null
      */
-    protected $container;
+    protected $container = null;
 
     /**
      * Page name
@@ -73,16 +73,16 @@ class Controller
     /**
      * Data validatin callback
      *
-     * @var Closure
+     * @var Closure|null
     */
-    protected $dataValidCallback;
+    protected $dataValidCallback = null;
 
     /**
      * Data error callback
      *
-     * @var Closure
+     * @var Closure|null
     */
-    protected $dataErrorCallback;
+    protected $dataErrorCallback = null;
 
     /**
      * Middleware classes
@@ -112,10 +112,10 @@ class Controller
      *
      * @return void
      */
-    protected function boot()
+    protected function boot(): void
     {
         $options = $this->container->get('options')->toArray();
-        // Set primary template           
+        // Set primary template                 
         $this->container->get('view')->setPrimaryTemplate($options['primary.template'] ?? null);          
         // DatTime and numbers format
         Number::setFormats($options['number.format.items'] ?? [],$options['number.format'] ?? null);
@@ -133,7 +133,7 @@ class Controller
      * @param string $moduleName
      * @return void
      */
-    public function addMiddleware($class, $moduleName = null)
+    public function addMiddleware(string $class, ?string $moduleName = null)
     {
         if (\is_object($class) == true) {
             $class = \get_class($class);
@@ -177,7 +177,7 @@ class Controller
      *
      * @return array
      */
-    public function getParams()
+    public function getParams(): array
     {
         return $this->params ?? [];
     }
@@ -189,7 +189,7 @@ class Controller
      * @param mixed|null $default
      * @return mixed|null
      */
-    public function getParam($key, $default = null)
+    public function getParam(string $key, $default = null)
     {
         return $this->params[$key] ?? $default;
     }
@@ -200,7 +200,7 @@ class Controller
      * @param string $id
      * @return mixed
      */
-    public function get($id)
+    public function get(string $id)
     {
         return $this->container->get($id);
     }
@@ -209,9 +209,9 @@ class Controller
      * Return tru if container item esist
      *
      * @param string $id
-     * @return mixed
+     * @return bool
      */
-    public function has($id)
+    public function has(string $id): bool
     {
         return $this->container->has($id);
     }
@@ -231,7 +231,7 @@ class Controller
      *
      * @return string|null
      */
-    public function getPageName()
+    public function getPageName(): ?string
     {
         return $this->pageName;
     }
@@ -241,7 +241,7 @@ class Controller
      *
      * @return string|null
      */
-    public function getExtensionName()
+    public function getExtensionName(): ?string
     {
         return $this->extensionName;
     }
@@ -252,27 +252,23 @@ class Controller
      * @param string $name
      * @return void
      */
-    public function setExtensionName($name)
+    public function setExtensionName(string $name): void
     {
         $this->extensionName = $name;
     }
     
     /**
-     * Add system error
+     * Get error
      *
-     * @param string $name
-     * @return boolean
-    */
-    public function addError($name)
+     * @param string $errorCode
+     * @param array $params
+     * @return string|null
+     */
+    public function getError(string $errorCode, array $params = []): ?string
     {
-        $message = $this->getMessage($name);
-        $message = (empty($message) == true) ? $name : $message;
+        $error = $this->getMessage($errorCode);
         
-        if ($this->has('errors') == true) {
-            return $this->get('errors')->addError($message);
-        }
-        
-        return false;
+        return (empty($error) == false) ? $error : $this->get('error')->getError($errorCode,$params);
     }
 
     /**
@@ -282,7 +278,7 @@ class Controller
      * @param boolean $relative
      * @return string
      */
-    public function getUrl($request, $relative = false)
+    public function getUrl($request, bool $relative = false): string
     {
         $path = $request->getUri()->getPath();
 
@@ -297,7 +293,7 @@ class Controller
      * @param string|null $language
      * @return string
      */
-    public function getPageUrl($path = '', $relative = false, $language = null)
+    public function getPageUrl(string $path = '', bool $relative = false, ?string $language = null): string
     {      
         return Url::getUrl($path,$relative,$language,$this->getDefaultLanguage());
     }
@@ -362,10 +358,10 @@ class Controller
      * Load messages from html component json file
      *
      * @param string $componentName
-     * @param string $language
+     * @param string|null $language
      * @return void
      */
-    public function loadMessages($componentName, $language = null)
+    public function loadMessages(string $componentName, ?string $language = null): void
     {       
         if (empty($this->container) == false) {
             $messages = $this->get('page')->createHtmlComponent($componentName,[],$language)->getProperties();
@@ -376,14 +372,16 @@ class Controller
     /**
      * Load validation error messages
      *
-     * @param string $componentName
-     * @param string $language
      * @return void
      */
-    public function loadValidationErrors($componentName, $language = null)
+    public function loadValidationErrors(): void
     {
-        $messages = $this->get('page')->createHtmlComponent($componentName,[],$language)->getProperties();
-        $this->validationErrorMessages = (empty($messages) == true) ? [] : $messages;
+        if (empty($this->validationErrorMessages) == true) {
+            $systemValidationErrors = $this->get('errors')->loadValidationErrors();
+            $errors = $this->messages['errors']['validation'] ?? [];
+
+            $this->validationErrorMessages = \array_merge($systemValidationErrors,$errors);
+        }
     }
 
     /**
@@ -392,7 +390,7 @@ class Controller
      * @param string $name
      * @return string
      */
-    public function getMessage($name)
+    public function getMessage(string $name): ?string
     {
         return $this->messages[$name] ?? Arrays::getValue($this->messages,$name,'.');        
     }
@@ -412,7 +410,7 @@ class Controller
      *
      * @return integer|null
      */
-    public function getUserId()
+    public function getUserId(): ?int
     {
         return ($this->has('access') == true) ? $this->get('access')->getId() : null; 
     }
@@ -423,13 +421,9 @@ class Controller
      * @param Closure $callback
      * @return void
     */
-    public function onValidationError(Closure $callback)
+    public function onValidationError(Closure $callback): void
     {
-        $function = function($data) use(&$callback) {
-            return $callback->call($this,$data);
-        };
-
-        $this->dataErrorCallback = $function;
+        $this->dataErrorCallback = $callback; 
     }
     
     /**
@@ -438,19 +432,15 @@ class Controller
      * @param Closure $callback
      * @return void
      */
-    public function onDataValid(Closure $callback)
+    public function onDataValid(Closure $callback): void
     {
-        $function = function($data) use(&$callback) {
-            return $callback->call($this,$data); 
-        };       
-
-        $this->dataValidCallback = $function;
+        $this->dataValidCallback = $callback;    
     }
 
     /**
      * Get data validation callback
      *
-     * @return Closure
+     * @return Closure|null
      */
     public function getDataValidCallback()
     {
@@ -460,7 +450,7 @@ class Controller
     /**
      * Get validation error callback
      *
-     * @return void
+     * @return Closure|void
      */
     public function getValidationErrorCallback()
     {
@@ -473,7 +463,7 @@ class Controller
      * @param Request $request
      * @return array
      */
-    public function getRequestParams($request)
+    public function getRequestParams($request): array
     {
         $params = \explode('/',$request->getAttribute('params'));
         $params = \array_filter($params);
@@ -490,7 +480,7 @@ class Controller
      * @param mixed $default
      * @return mixed
      */
-    public function getQueryParam($request, $name, $default = null)
+    public function getQueryParam($request, string $name, $default = null)
     {
         $params = $request->getQueryParams();
 
@@ -504,7 +494,7 @@ class Controller
      * @param array $paramsKeys
      * @return array
      */
-    public function resolveRequestParams($request,array $paramsKeys)
+    public function resolveRequestParams($request, array $paramsKeys)
     {
         $params = $this->getRequestParams($request);
         foreach ($paramsKeys as $index => $value) {
@@ -517,14 +507,10 @@ class Controller
     /**
      * Require control panel permission
      *
-     * @return void
+     * @return mixed
      */
     public function requireControlPanelPermission()
     {
-        if ($this->has('access') == false) {
-            return false;
-        }
-
         return $this->requireAccess($this->get('access')->getControlPanelPermission(),$this->get('access')->getFullPermissions());
     }
     
@@ -535,7 +521,7 @@ class Controller
      * @param mixed $type
      * @return bool
      */
-    public function requireAccess($name, $type = null)
+    public function requireAccess($name, $type = null): bool
     {       
         if ($this->hasAccess($name,$type) == true) {
             return true;
@@ -552,7 +538,7 @@ class Controller
      *
      * @return boolean
      */
-    public function hasControlPanelAccess()
+    public function hasControlPanelAccess(): bool
     {
         $permissionName = $this->get('access')->getControlPanelPermission();
         $type = $this->get('access')->getFullPermissions();
@@ -567,7 +553,7 @@ class Controller
      * @param string $type
      * @return boolean
      */
-    public function hasAccess($name, $type = null)
+    public function hasAccess($name, $type = null): bool
     {
         if ($this->has('access') == false) {
             return false;
@@ -582,7 +568,7 @@ class Controller
      * @param array $data
      * @return boolean
      */
-    public function isLanguageChange($data)
+    public function isLanguageChange($data): bool
     {
         if (isset($data['language']) == false) {
             return false;
@@ -595,9 +581,9 @@ class Controller
      * Get page language
      *
      * @param array $data
-     * @return string
+     * @return string|null
     */
-    public function getPageLanguage($data)
+    public function getPageLanguage($data): ?string
     {     
         $language = $data['language'] ?? '';
         if (empty($language) == false) {
@@ -619,7 +605,7 @@ class Controller
      *
      * @return string
      */
-    public function getDefaultLanguage()
+    public function getDefaultLanguage(): string
     {
         return ($this->has('options') == true) ? $this->get('options')->get('default.language','en') : 'en';    
     }
@@ -676,7 +662,7 @@ class Controller
      * @param string $url
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function withRedirect($response, $url)
+    public function withRedirect($response, string $url)
     {
         return $this
             ->noCacheHeaders($response)      
@@ -723,7 +709,7 @@ class Controller
      * @param string $templateName
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function pageSystemError($response, $data = [], $templateName = 'system')
+    public function pageSystemError($response, $data = [], string $templateName = 'system')
     {     
         $language = $this->getPageLanguage($data);
 
@@ -740,7 +726,7 @@ class Controller
      * @param string $xml
      * @return ResponseInterface
      */
-    public function writeXml(ResponseInterface $response, $xml)
+    public function writeXml(ResponseInterface $response, string $xml)
     {
         $response->getBody()->write($xml);
 
@@ -754,7 +740,7 @@ class Controller
      * @param array $context
      * @return bool
      */
-    public function logError($message, array $context = [])
+    public function logError(string $message, array $context = []): bool
     {
         if ($this->has('logger') == true) {
             return $this->get('logger')->error($message,$context);
@@ -770,7 +756,7 @@ class Controller
      * @param array $context
      * @return bool
      */
-    public function logInfo($message, array $context = [])
+    public function logInfo(string $message, array $context = []): bool
     {
         if ($this->has('logger') == true) {
             return $this->get('logger')->info($message,$context);
@@ -785,7 +771,7 @@ class Controller
      * @param Request $request
      * @return boolean
      */
-    protected function resolveRouteParams($request)
+    protected function resolveRouteParams($request): bool
     {       
         $routeParams = $request->getAttribute('route_params');
         if ($routeParams !== false) {
@@ -807,7 +793,7 @@ class Controller
      * @param string $paramName
      * @return string|null
      */
-    protected function resolveRouteParam($request, $paramName)
+    protected function resolveRouteParam($request, string $paramName): ?string
     {                      
         $routeParams = $request->getAttribute('route_params');  
                         

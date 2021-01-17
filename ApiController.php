@@ -51,6 +51,13 @@ class ApiController extends Controller
     protected $prettyFormat = false;
 
     /**
+     * Validation error messages
+     *
+     * @var array|null
+     */
+    protected $validationErrorMessages = null;
+
+    /**
      * Constructor
      *
      * @param Container $container
@@ -101,7 +108,7 @@ class ApiController extends Controller
      * @param array $params
      * @return mixed|false
      */
-    public function dispatch($eventName, $params) 
+    public function dispatch(string $eventName, $params) 
     {
         return ($this->has('event') == true) ? $this->get('event')->dispatch($eventName,$params) : false;  
     }
@@ -112,7 +119,7 @@ class ApiController extends Controller
      * @param string $class
      * @return void
      */
-    public function setModelClass($class)
+    public function setModelClass(string $class): void
     {
         $this->modelClass = $class;
     }
@@ -120,9 +127,9 @@ class ApiController extends Controller
     /**
      * Get model class name
      *     
-     * @return string
+     * @return string|null
      */
-    public function getModelClass()
+    public function getModelClass(): ?string
     {
         return $this->modelClass;
     }
@@ -156,7 +163,7 @@ class ApiController extends Controller
      * @param boolean $condition
      * @return void
      */
-    public function setError($errorMessage, $condition = true) 
+    public function setError(string $errorMessage, bool $condition = true) 
     {
         if ($condition !== false) {
             \array_push($this->errors,$errorMessage);  
@@ -170,7 +177,7 @@ class ApiController extends Controller
      * @param mixed $type
      * @return bool
      */
-    public function requireAccess($name, $type = null)
+    public function requireAccess($name, $type = null): bool
     {       
         if ($this->hasAccess($name,$type) == true) {
             return true;
@@ -187,7 +194,7 @@ class ApiController extends Controller
      *
      * @return void
     */
-    public function clearErrors()
+    public function clearErrors(): void
     {
         $this->errors = [];
     }
@@ -201,9 +208,7 @@ class ApiController extends Controller
     protected function resolveValidationErrors($errors)
     {
         $result = [];
-        if (\is_array($this->validationErrorMessages) == false) {
-            $this->validationErrorMessages = $this->get('errors')->loadValidationErrors();
-        }
+        $this->loadValidationErrors();
 
         foreach ($errors as $item) {
             $message = $this->getValidationErrorMessage($item['error_code']);
@@ -232,9 +237,9 @@ class ApiController extends Controller
      *
      * @return boolean
      */
-    public function hasError() 
+    public function hasError(): bool 
     {    
-        return (count($this->errors) > 0);         
+        return (\count($this->errors) > 0);         
     }
 
     /**
@@ -243,7 +248,7 @@ class ApiController extends Controller
      * @param boolean $raw
      * @return string
      */
-    public function getResponseJson($raw = false)
+    public function getResponseJson(bool $raw = false): string
     {
         $this->result = \array_merge($this->result,[
             'errors'          => $this->errors,
@@ -263,10 +268,9 @@ class ApiController extends Controller
      * Return response 
      *  
      * @param boolean $raw
-     * 
      * @return ResponseInterface
      */
-    public function getResponse($raw = false)
+    public function getResponse(bool $raw = false)
     {
         $json = $this->getResponseJson($raw);
 
@@ -285,9 +289,27 @@ class ApiController extends Controller
      * @param mixed $value
      * @return void
      */
-    public function setResultField($name, $value)
+    public function setResultField(string $name, $value): void
     {      
         $this->result['result'][$name] = $value;
+    }
+
+    /**
+     * Set result filelds
+     *
+     * @param array $values
+     * @param string|null $filedName
+     * @return void
+     */
+    public function setResultFields(array $values, ?string $filedName = null): void
+    {      
+        foreach ($values as $key => $value) {
+            if (empty($filedName) == true) {
+                $this->result['result'] = $values;
+            } else {
+                $this->result['result'][$filedName][$key] = $value;
+            }         
+        }      
     }
 
     /**
@@ -297,7 +319,7 @@ class ApiController extends Controller
      * @param mixed $value
      * @return Self
      */
-    public function field($name, $value)
+    public function field(string $name, $value)
     {
         $this->setResultField($name,$value);
 
@@ -310,7 +332,7 @@ class ApiController extends Controller
      * @param string $name  
      * @return ApiController
      */
-    public function message($name)
+    public function message(string $name)
     {
         $message = $this->getMessage($name);
         $message = $message ?? $name;
@@ -326,12 +348,12 @@ class ApiController extends Controller
      * @param string $name
      * @return ApiController
      */
-    public function error($name)
+    public function error(string $name)
     {
         $message = $this->getMessage($name);
         if (empty($message) == true) {
             // check for system error
-            $message = $this->get('errors')->get($name,null);
+            $message = $this->get('errors')->getError($name);
         }
         $message = (empty($message) == true) ? $name : $message;        
         $this->setError($message);
@@ -357,19 +379,33 @@ class ApiController extends Controller
      * @param array $errors
      * @return void
      */
-    public function addErrors(array $errors)
+    public function addErrors(array $errors): void
     {      
         $this->errors = \array_merge($this->errors,$errors);       
     }
 
-     /**
+    /**
+     * Add system error
+     *
+     * @param string $errorCode
+     * @return void
+    */
+    public function addError(string $errorCode): void
+    {
+        $message = $this->getMessage($errorCode);
+        $message = (empty($message) == true) ? $errorCode : $message;
+          
+        $this->errors[] = $message;      
+    }
+
+    /**
      * Set error message
      *
      * @param string $errorMessage
      * @param boolean $condition
      * @return Self
      */
-    public function withError($errorMessage, $condition = true) 
+    public function withError(string $errorMessage, bool $condition = true) 
     {
         $this->setError($errorMessage,$condition);
 
@@ -384,7 +420,7 @@ class ApiController extends Controller
      * @param string|string|Closure $error
      * @return mixed
     */
-    public function setResponse($condition, $data, $error)
+    public function setResponse(bool $condition, $data, $error)
     {
         if ($condition !== false) {
             if (\is_callable($data) == true) {
@@ -419,8 +455,8 @@ class ApiController extends Controller
      *
      * @return int
      */
-    public function getErrorCount()
+    public function getErrorCount(): int
     {
-        return count($this->errors);
+        return \count($this->errors);
     }
 }
