@@ -53,7 +53,7 @@ trait FileDownload
      * @param string filesystem
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function downloadFile($response, $filePath, $filesystem = 'storage')
+    public function downloadFile($response, string $filePath, string $filesystem = 'storage')
     {
         if ($this->get('storage')->has($filePath,$filesystem) == true) {
             $data = $this->get('storage')->readStream($filePath,$filesystem);  
@@ -72,7 +72,7 @@ trait FileDownload
      * @param  \Psr\Http\Message\StreamInterface|string $stream
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function viewImageHeaders($response, $type, $stream)
+    public function viewImageHeaders($response, string $type, $stream)
     {
         $stream = ($stream instanceof StreamInterface) ? $stream : Psr7\stream_for($stream);
 
@@ -92,10 +92,10 @@ trait FileDownload
      * @param string|null $mimeType  
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function viewImage($response, $imagePath, $filesystem = 'storage', $mimeType = null)
+    public function viewImage($response, string $imagePath, string $filesystem = 'storage', ?string $mimeType = null)
     { 
         $data = $this->get('storage')->read($imagePath,$filesystem);
-        $type = (empty($mimeType) == true) ? File::getMimetype($this->get('storage')->getFullPath($imagePath,$filesystem)) : $mimeType;
+        $type = $mimeType ?? File::getMimetype($this->get('storage')->getFullPath($imagePath,$filesystem));
 
         return $this->viewImageHeaders($response,$type,$data);
     }

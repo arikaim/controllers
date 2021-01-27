@@ -21,9 +21,9 @@ trait Delete
      *
      * @return string
      */
-    protected function getDeleteMessage()
+    protected function getDeleteMessage(): string
     {
-        return (isset($this->deleteMessage) == true) ? $this->deleteMessage : 'delete';
+        return $this->deleteMessage ?? 'delete';
     }
 
     /**

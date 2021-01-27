@@ -21,9 +21,9 @@ trait MetaTags
      *
      * @return string
      */
-    protected function getUpdateMetaTagsMessage()
+    protected function getUpdateMetaTagsMessage(): string
     {
-        return (isset($this->updateMetaTagsMessage) == true) ? $this->updateMetaTagsMessage : 'metatags';
+        return $this->updateMetaTagsMessage ?? 'metatags';
     }
 
     /**

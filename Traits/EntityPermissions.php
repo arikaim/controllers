@@ -21,9 +21,9 @@ trait EntityPermissions
      *
      * @return string
      */
-    protected function getAddPermissionMessage()
+    protected function getAddPermissionMessage(): string
     {
-        return (isset($this->addPermissionMessage) == true) ? $this->addPermissionMessage : 'permission.add';
+        return $this->addPermissionMessage ?? 'permission.add';
     }
 
     /**
@@ -31,9 +31,9 @@ trait EntityPermissions
      *
      * @return string
      */
-    protected function getDeletePermissionMessage()
+    protected function getDeletePermissionMessage(): string
     {
-        return (isset($this->deletePermissionMessage) == true) ? $this->deletePermissionMessage : 'permission.delete';
+        return $this->deletePermissionMessage ?? 'permission.delete';
     }
 
     /**

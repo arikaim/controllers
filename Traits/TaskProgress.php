@@ -42,7 +42,7 @@ trait TaskProgress
      * @param int|null $sleep  
      * @return void
      */
-    public function initTaskProgress($totalSteps = null, $sleep = null)
+    public function initTaskProgress(?int $totalSteps = null, ?int $sleep = null): void
     {
         \ini_set('output_buffering','Off'); 
         \ini_set('zlib.output_compression',0);
@@ -60,7 +60,7 @@ trait TaskProgress
      *
      * @return void
      */
-    public function taskProgressEnd()
+    public function taskProgressEnd(): void
     {
         \ob_end_clean();
         $this->clearResult();
@@ -72,7 +72,7 @@ trait TaskProgress
      *
      * @return void
      */
-    public function sendProgressResponse()
+    public function sendProgressResponse(): void
     {   
         \ob_end_clean();
         \ob_start();  

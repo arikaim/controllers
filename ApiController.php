@@ -415,13 +415,15 @@ class ApiController extends Controller
     /**
      * Set response 
      *
-     * @param boolean $condition
+     * @param mixed $condition
      * @param array|string|Closure $data
      * @param string|string|Closure $error
      * @return mixed
     */
     public function setResponse(bool $condition, $data, $error)
     {
+        $condition = (\is_bool($condition) === true) ? $condition : (bool)$condition;
+
         if ($condition !== false) {
             if (\is_callable($data) == true) {
                 return $data();
@@ -433,7 +435,7 @@ class ApiController extends Controller
                 return $this->message($data);
             }
         } else {
-            return (\is_callable($error) == true) ? $error() : $this->setError($error);          
+            return (\is_callable($error) == true) ? $error() : $this->error($error);          
         }
     }
 

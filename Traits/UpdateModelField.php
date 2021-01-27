@@ -21,9 +21,9 @@ trait UpdateModelField
      *
      * @return string
      */
-    protected function getUpdateFieldMessage()
+    protected function getUpdateFieldMessage(): string
     {
-        return (isset($this->updateFieldMessage) == true) ? $this->updateFieldMessage : 'field.update';
+        return $this->updateFieldMessage ?? 'field.update';
     }
 
     /**

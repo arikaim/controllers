@@ -23,7 +23,7 @@ trait AccessToken
      * @param string $pattern
      * @return string|false
      */
-    public function createProtectedUrl($userId, $pattern)
+    public function createProtectedUrl($userId, string $pattern)
     {
         $accessToken = $this->get('access')->withProvider('token')->createToken($userId);   
 

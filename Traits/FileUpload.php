@@ -9,7 +9,6 @@
 */
 namespace Arikaim\Core\Controllers\Traits;
 
-use GuzzleHttp\Psr7\ServerRequest;
 use Arikaim\Core\Utils\Path;
 
 /**
@@ -22,9 +21,9 @@ trait FileUpload
      *
      * @return string
      */
-    protected function getFileUploadMessage()
+    protected function getFileUploadMessage(): string
     {
-        return (isset($this->fileUploadMessage) == true) ? $this->fileUploadMessage : 'upload';
+        return $this->fileUploadMessage ?? 'upload';
     }
 
     /**
@@ -32,9 +31,9 @@ trait FileUpload
      *
      * @return string
      */
-    public function getUplaodFieldName()
+    public function getUplaodFieldName(): string
     {
-        return (isset($this->uploadFiledName) == true) ? $this->uploadFiledName : 'file';
+        return  $this->uploadFiledName ?? 'file';
     }
 
     /**
@@ -71,7 +70,7 @@ trait FileUpload
      * @param boolean $moveFile
      * @return array
      */
-    public function uploadFiles($request, $path = '', $relative = true, $moveFile = true)
+    public function uploadFiles($request, string $path = '', bool $relative = true, bool $moveFile = true): array
     {
         $fieldName = $this->getUplaodFieldName();
         $files = $request->getUploadedFiles();

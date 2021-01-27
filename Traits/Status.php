@@ -16,15 +16,14 @@ use Arikaim\Core\Db\Model;
 */
 trait Status 
 {        
-
     /**
      * Get status changed message
      *
      * @return string
      */
-    protected function getStatusChangedMessage()
+    protected function getStatusChangedMessage(): string
     {
-        return (isset($this->statusChangedMessage) == true) ? $this->statusChangedMessage : 'status';
+        return $this->statusChangedMessage ?? 'status';
     }
 
     /**
@@ -32,9 +31,9 @@ trait Status
      *
      * @return string
      */
-    protected function getDefaultMessage()
+    protected function getDefaultMessage(): string
     {
-        return (isset($this->setDefaultMessage) == true) ? $this->setDefaultMessage : 'default';
+        return $this->setDefaultMessage ?? 'default';
     }
 
     /**
