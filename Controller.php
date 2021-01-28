@@ -117,9 +117,9 @@ class Controller
         $options = $this->container->get('options')->toArray();
         
         // Set primary template        
-        $primaryTemplate = $options['primary.template'] ?? 'blog';
+        $primaryTemplate = $options['primary.template'] ?? null;
         if (empty($primaryTemplate) == true) {
-            $primaryTemplate = $this->container->get('options')->read('primary.template','blog');
+            $primaryTemplate = $this->container->get('options')->read('primary.template','system');
         }         
         $this->container->get('view')->setPrimaryTemplate($primaryTemplate);      
             
