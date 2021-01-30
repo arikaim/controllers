@@ -346,14 +346,15 @@ class ApiController extends Controller
      * Set error, first find in messages array if not found display name value as error
      *
      * @param string $name
+     * @param array $params
      * @return ApiController
      */
-    public function error(string $name)
+    public function error(string $name, array $params = [])
     {
         $message = $this->getMessage($name);
         if (empty($message) == true) {
             // check for system error
-            $message = $this->get('errors')->getError($name);
+            $message = $this->get('errors')->getError($name,$params,$name);           
         }
         $message = (empty($message) == true) ? $name : $message;        
         $this->setError($message);

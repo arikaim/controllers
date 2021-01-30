@@ -394,7 +394,7 @@ class Controller
      * Get message
      *
      * @param string $name
-     * @return string
+     * @return string|null
      */
     public function getMessage(string $name): ?string
     {
@@ -711,15 +711,15 @@ class Controller
      * Display system error page
      *    
      * @param ResponseInterface $response
-     * @param array $data
+     * @param array $error
      * @param string $templateName
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function pageSystemError($response, $data = [], string $templateName = 'system')
+    public function pageSystemError($response, $error = [], string $templateName = 'system')
     {     
-        $language = $this->getPageLanguage($data);
-
-        $component = $this->get('page')->renderSystemError($data,$language,$templateName); 
+        $language = $this->getPageLanguage($error);
+       
+        $component = $this->get('page')->renderSystemError($error,$language,$templateName); 
         $response->getBody()->write($component->getHtmlCode());
 
         return $response;             
