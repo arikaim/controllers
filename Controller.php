@@ -208,6 +208,11 @@ class Controller
      */
     public function get(string $id)
     {
+        if ($this->container->has($id) == false) {
+            // try from service container
+            return $this->container->get('service')->get($id);
+        }
+
         return $this->container->get($id);
     }
 
