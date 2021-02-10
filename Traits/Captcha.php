@@ -15,22 +15,42 @@ namespace Arikaim\Core\Controllers\Traits;
 trait Captcha 
 {        
     /**
+     * Captcha errors 
+     *
+     * @var array|null
+     */
+    protected $captchaErrors = null;
+
+    /**
      * Verify captcha
      *   
      * @param \Psr\Http\Message\ServerRequestInterface $request    
      * @param Validator $data
      * @return boolean
     */
-    public function verifyCaptcha($request, $data)
+    public function verifyCaptcha($request, $data): bool
     {
-        $current = $this->get('options')->get('captcha.current');
-        $recaptcha = $this->get('driver')->create($current);
+        $driverName = $this->get('options')->get('captcha.current');
+        $driver = $this->get('driver')->create($driverName);
+        $this->captchaErrors = null;
+        $result = $driver->verify($request,$data);
 
-        $result = $recaptcha->verify($data['g-recaptcha-response'],$request->getAttribute('client_ip'));        
         if ($result == false) {
-            $this->error('errors.captcha');      
+            $this->captchaErrors = $driver->getErrors();
+            $this->error('errors.captcha'); 
+            return false;     
         }   
-        
-        return $result;
+
+        return true;
     }
+
+    /**
+     * Get captcha errors
+     *
+     * @return array|null
+     */
+    public function getCaptchaErrors(): ?array
+    {
+        return $this->captchaErrors;
+    } 
 }
