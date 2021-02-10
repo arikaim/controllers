@@ -25,11 +25,13 @@ trait Captcha
      * Verify captcha
      *   
      * @param \Psr\Http\Message\ServerRequestInterface $request    
-     * @param Validator $data
+     * @param Validator|array|null $data
      * @return boolean
     */
     public function verifyCaptcha($request, $data): bool
     {
+        $data = (\is_object($data) == true) ? $data->toArray() : $data;
+
         $driverName = $this->get('options')->get('captcha.current');
         $driver = $this->get('driver')->create($driverName);
         $this->captchaErrors = null;
