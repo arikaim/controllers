@@ -260,10 +260,10 @@ class Controller
     /**
      * Set extension name
      *
-     * @param string $name
+     * @param string|null $name
      * @return void
      */
-    public function setExtensionName(string $name): void
+    public function setExtensionName(?string $name): void
     {
         $this->extensionName = $name;
     }
