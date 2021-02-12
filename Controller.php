@@ -17,8 +17,6 @@ use Arikaim\Core\Http\Session;
 use Arikaim\Core\Http\Cookie;
 use Arikaim\Core\Http\Url;
 use Arikaim\Core\Utils\Factory;
-use Arikaim\Core\Utils\Number;
-use Arikaim\Core\Utils\DateTime;
 use Arikaim\Core\Routes\Route;
 
 use Closure;
@@ -99,37 +97,7 @@ class Controller
     public function __construct($container = null)
     {      
         $this->container = $container;
-    
-        if (empty($container) == false) {
-            $this->boot();
-        }
-    
         $this->init();
-    }
-
-    /**
-     * Init options
-     *
-     * @return void
-     */
-    protected function boot(): void
-    {
-        $options = $this->container->get('options')->toArray();
-        
-        // Set primary template        
-        $primaryTemplate = $options['primary.template'] ?? null;
-        if (empty($primaryTemplate) == true) {
-            $primaryTemplate = $this->container->get('options')->read('primary.template','system');
-        }         
-        $this->container->get('view')->setPrimaryTemplate($primaryTemplate);      
-            
-        // DatTime and numbers format
-        Number::setFormats($options['number.format.items'] ?? [],$options['number.format'] ?? null);
-        // Set time zone
-        DateTime::setTimeZone($options['time.zone'] ?? null);
-        // Set date and time formats          
-        DateTime::setDateFormats($options['date.format.items'] ?? [],$options['date.format'] ?? null);           
-        DateTime::setTimeFormats($options['time.format.items'] ?? [],$options['time.format'] ?? null);  
     }
 
     /**
