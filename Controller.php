@@ -624,9 +624,6 @@ class Controller
        
         // current url path
         $data['current_path'] = $request->getAttribute('current_path');
-        // save current page 
-        $this->get('options')->set('current.page',$pageName);
-        $this->get('options')->set('current.path',$data['current_path']);
         
         $component = $this->get('page')->render($pageName,$data,$language);
         $response->getBody()->write($component->getHtmlCode());
