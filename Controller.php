@@ -586,7 +586,7 @@ class Controller
      */
     public function getDefaultLanguage(): string
     {
-        return ($this->has('options') == true) ? $this->get('options')->get('default.language','en') : 'en';    
+        return ($this->has('config') == true) ? $this->get('config')->getString('defaultLanguage','en') : 'en';    
     }
 
     /**
