@@ -213,7 +213,7 @@ class ApiController extends Controller
         foreach ($errors as $item) {
             $message = $this->getValidationErrorMessage($item['error_code']);
             $result[] = [
-                'filed_name' => $item['field_name'],
+                'field_name' => $item['field_name'],
                 'message'    => (empty($message) == false) ? Text::render($message,$item['params']) : $item['error_code']  
             ];
         }
