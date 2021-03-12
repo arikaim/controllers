@@ -19,6 +19,20 @@ trait Options
     /**
      * Save options
      *
+     * @Api(
+     *      description="Save options",    
+     *      parameters={
+     *          @ApiParameter (name="id",type="integer",description="Options ref Id",required=true),
+     *          @ApiParameter (name="options",type="array",description="Options values",required=true)                   
+     *      }
+     * )
+     * 
+     * @ApiResponse(
+     *      fields={
+     *          @ApiParameter (name="uuid",type="string",description="Model uuid")
+     *      }
+     * )  
+     * 
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param Validator $data
@@ -49,6 +63,21 @@ trait Options
     /**
      * Save single option
      *
+     * @Api(
+     *      description="Save option",    
+     *      parameters={
+     *          @ApiParameter (name="id",type="integer",description="Option ref Id",required=true),
+     *          @ApiParameter (name="key",type="string",description="Option key name",required=true),
+     *          @ApiParameter (name="value",type="mixed",description="Option value",required=true)                      
+     *      }
+     * )
+     * 
+     * @ApiResponse(
+     *      fields={
+     *          @ApiParameter (name="uuid",type="string",description="Model uuid")
+     *      }
+     * ) 
+     * 
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param Validator $data
