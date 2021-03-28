@@ -31,7 +31,7 @@ class Controller
      *
      * @var string|null
      */
-    protected $extensionName = null;   
+    protected $extensionName = '';   
 
     /**
      * Response messages
@@ -83,13 +83,6 @@ class Controller
     protected $dataErrorCallback = null;
 
     /**
-     * Middleware classes
-     *
-     * @var array
-     */
-    protected $middleware = [];
-
-    /**
      * Constructor
      *
      * @param Container $container
@@ -98,52 +91,6 @@ class Controller
     {      
         $this->container = $container;
         $this->init();
-    }
-
-    /**
-     * Add middleware
-     *
-     * @param string $class
-     * @param string $moduleName
-     * @return void
-     */
-    public function addMiddleware(string $class, ?string $moduleName = null)
-    {
-        if (\is_object($class) == true) {
-            $class = \get_class($class);
-        }
-
-        if (\class_exists($class) == true) {
-            $this->middleware[] = $class;
-            return;
-        }
-
-        $moduleName = $moduleName ?? $class;
-        $moduleClass = Factory::getModuleClass($moduleName,$class);
-
-        if (\class_exists($moduleClass) == true) {
-            $this->middleware[] = $moduleClass;
-        }
-    }
-
-    /**
-     * Get controller middlewares
-     *
-     * @return array
-     */
-    public function getMiddlewares()
-    {
-        return $this->middleware;
-    }
-
-    /**
-     * Return true if route has middleware
-     *
-     * @return boolean
-     */
-    public function hasMiddleware()
-    {
-        return (count($this->middleware) > 0);
     }
 
     /**
@@ -222,7 +169,7 @@ class Controller
      */
     public function getExtensionName(): ?string
     {
-        return $this->extensionName;
+        return ($this->extensionName == 'core') ? null : $this->extensionName;
     }
 
     /**
@@ -342,10 +289,11 @@ class Controller
      */
     public function loadMessages(string $componentName, ?string $language = null): void
     {       
-        if (empty($this->container) == false) {
-            $messages = $this->get('page')->createHtmlComponent($componentName,[],$language)->getProperties();
-            $this->messages = (empty($messages) == true) ? [] : $messages;    
-        }         
+        $language = $language ?? $this->getDefaultLanguage();
+        $component = $this->get('view')->renderComponent($componentName,[],$language,'json');
+        $messages = $component->getProperties();
+            
+        $this->messages = (empty($messages) == true) ? [] : $messages;           
     }
 
     /**
@@ -560,9 +508,9 @@ class Controller
      * Get page language
      *
      * @param array $data
-     * @return string|null
+     * @return string
     */
-    public function getPageLanguage($data): ?string
+    public function getPageLanguage($data): string
     {     
         $language = $data['language'] ?? '';
         if (empty($language) == false) {
@@ -607,7 +555,7 @@ class Controller
         }
         $data = (\is_object($data) == true) ? $data->toArray() : $data;
         if (empty($pageName) == true || \is_array($pageName) == true) {
-            $pageName = $data['page_name'] ?? $this->resolveRouteParam($request,'page_name');
+            $pageName = $data['page_name'] ?? $this->pageName;
         }
 
         if (empty($pageName) == true) {
@@ -750,11 +698,15 @@ class Controller
     protected function resolveRouteParams($request): bool
     {       
         $routeParams = $request->getAttribute('route_params');
+
         if ($routeParams !== false) {
             // set route params
-            $this->pageName = $routeParams['page_name'] ?? null;
-            $this->extensionName = $routeParams['extension_name'] ?? null;
-            $this->params = $routeParams['options'] ?? [];
+            $this->pageName = $routeParams['route_page_name'] ?? null;
+            if ((\is_null($this->extensionName) == false) && ($this->extensionName != 'core')) {
+                $this->extensionName = $routeParams['route_extension_name'] ?? null;
+            }
+           
+            $this->params = (empty($routeParams['route_options']) == false) ? \json_decode($routeParams['route_options'],true) : [];
 
             return true;
         }

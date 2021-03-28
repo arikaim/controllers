@@ -48,7 +48,6 @@ trait SoftDelete
     {
         $this->onDataValid(function($data) {                  
             $uuid = $data->get('uuid');
-            
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
             if (\is_object($model) == false) {
                 $this->error('errors.class');
