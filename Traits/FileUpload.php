@@ -33,7 +33,7 @@ trait FileUpload
      */
     public function getUplaodFieldName(): string
     {
-        return  $this->uploadFiledName ?? 'file';
+        return $this->uploadFiledName ?? 'file';
     }
 
     /**
@@ -65,12 +65,19 @@ trait FileUpload
      * Upload file(s)
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
-     * @param string $path Destinatin path relative to storage path
+     * @param string $path Destination path relative to storage path
      * @param boolean $relative
      * @param boolean $moveFile
+     * @param string|null $destinationFileName
      * @return array
      */
-    public function uploadFiles($request, string $path = '', bool $relative = true, bool $moveFile = true): array
+    public function uploadFiles(
+        $request, 
+        string $path = '', 
+        bool $relative = true, 
+        bool $moveFile = true,
+        ?string $destinationFileName = null
+    ): array
     {
         $fieldName = $this->getUplaodFieldName();
         $files = $request->getUploadedFiles();
@@ -79,17 +86,19 @@ trait FileUpload
     
         $result = [];
         foreach ($uploadedFiles as $file) {
+            $destinationFileName = (empty($destinationFileName) == true) ? $file->getClientFilename() : $destinationFileName;
+
             if ($file->getError() === UPLOAD_ERR_OK) {                   
-                $fileName = $destinationPath . $file->getClientFilename();   
+                $fileName = $destinationPath . $destinationFileName;   
                 if ($moveFile == true) {
                     $file->moveTo($fileName);       
-                }                             
+                }         
             }
 
             $result[] = [
-                'name'       => $file->getClientFilename(),              
+                'name'       => $destinationFileName,              
                 'size'       => $file->getSize(),              
-                'file_name'  => $file->getClientFilename(), 
+                'file_name'  => $destinationFileName, 
                 'media_type' => $file->getClientMediaType(),
                 'moved'      => $file->isMoved(),
                 'error'      => ($file->isMoved() == false) ? $file->getError() : false
