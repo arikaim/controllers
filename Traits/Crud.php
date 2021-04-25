@@ -167,26 +167,24 @@ trait Crud
     {
         $this->requireControlPanelPermission();
 
-        $this->onDataValid(function($data) {                  
-            $uuid = $data->get('uuid');
+        $this->onDataValid(function($data) {                             
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
          
-            $result = false;
+            $createdModel = null;
             if (\is_object($model) == true) {
                 $result = $this->checkColumn($model,$data);
                 if ($result == true) {
-                    $result = (bool)$model->create($data->toArray());
+                    $createdModel = $model->create($data->toArray());
                 }
             }
                         
-            $this->setResponse($result,function() use($uuid) {              
+            $this->setResponse(\is_object($createdModel),function() use($createdModel) {              
                 $this
                     ->message($this->getCreateMessage())
-                    ->field('uuid',$uuid);                  
+                    ->field('uuid',$createdModel->uuid);                  
             },'errors.' . $this->getCreateMessage());
         });
-        $data
-            ->addRule('text:min=2|required','uuid')           
+        $data                  
             ->validate();        
     }
 
