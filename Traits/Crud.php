@@ -10,14 +10,77 @@
 namespace Arikaim\Core\Controllers\Traits;
 
 use Arikaim\Core\Db\Model;
+use Closure;
 
 /**
  * CRUD trait
 */
 trait Crud 
 {        
+    /**
+     * Before update
+     *
+     * @var Closure|null
+     */
+    protected $beforeUpdateCallback = null;
 
-    protected function getUniqueColumns()
+    /**
+     * Before crate
+     *
+     * @var Closure|null
+     */
+    protected $beforeCreateCallback = null;
+
+    /**
+     * Set before update
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    protected function onBeforeUpdate(Closure $callback): void
+    {
+        $this->beforeUpdateCallback = $callback;
+    }
+
+    /**
+     * Set before create
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    protected function onBeforeCreate(Closure $callback): void
+    {
+        $this->beforeCreateCallback = $callback;
+    }
+
+    /**
+     * Resolve callback
+     *
+     * @param array $data
+     * @param Closure|null $callback
+     * @return array
+     */
+    private function resolveCallback(array $data, ?Closure $callback): array
+    {
+        return (\is_callable($callback) == true) ? $callback($data) : $data;         
+    }
+
+    /**
+     * Get default values
+     *
+     * @return array
+     */
+    protected function getDefaultValues(): array
+    {
+        return $this->defaultValues ?? [];
+    } 
+
+    /**
+     * Get unique columns
+     *
+     * @return array
+     */
+    protected function getUniqueColumns(): array
     {
         return $this->uniqueColumns ?? [];
     } 
@@ -63,6 +126,25 @@ trait Crud
     }
 
     /**
+     * Apply default field values
+     *
+     * @param array $data
+     * @return array
+     */
+    protected function applyDefaultValues(array $data): array 
+    {
+        $defaultValues = $this->getDefaultValues();
+
+        foreach ($data as $fieldName => $value) {
+            if (empty($value) == true && array_key_exists($fieldName,$defaultValues) == true) {               
+                $data[$fieldName] = $defaultValues[$fieldName];
+            }
+        }
+
+        return $data;
+    }
+
+    /**
      * Check unique columns
      *
      * @param Model|object $model
@@ -74,7 +156,7 @@ trait Crud
     {
         $columns = $this->getUniqueColumns();
 
-        foreach($columns as $column) {
+        foreach ($columns as $column) {
             $value = $data->get($column);
             if (empty($value) == false) {
                 $found = $model->where($column,'=',$value)->first();
@@ -109,14 +191,14 @@ trait Crud
           
             $result = \is_object($model);
                         
-            $this->setResponse($result,function() use($uuid, $model) {              
+            $this->setResponse($result,function() use($model) {              
                 $this
                     ->message($this->getReadMessage())
                     ->setResultFields($model->toArray());                  
             },'errors.' . $this->getReadMessage());
         });
         $data
-            ->addRule('text:min=2|required','uuid')           
+            ->addRule('text:min=1|required','uuid')           
             ->validate();        
     }
 
@@ -140,7 +222,9 @@ trait Crud
             if (\is_object($model) == true) {
                 $result = $this->checkColumn($model,$data,$model->id);
                 if ($result == true) {
-                    $result = (bool)$model->update($data->toArray());
+                    $data = $this->applyDefaultValues($data->toArray());                  
+                    $data = $this->resolveCallback($data,$this->beforeUpdateCallback);
+                    $result = (bool)$model->update($data);
                 }
             }
                         
@@ -151,7 +235,7 @@ trait Crud
             },'errors.' . $this->getUpdateMessage());
         });
         $data
-            ->addRule('text:min=2|required','uuid')           
+            ->addRule('text:min=1|required','uuid')           
             ->validate();        
     }
 
@@ -174,7 +258,9 @@ trait Crud
             if (\is_object($model) == true) {
                 $result = $this->checkColumn($model,$data);
                 if ($result == true) {
-                    $createdModel = $model->create($data->toArray());
+                    $data = $this->applyDefaultValues($data->toArray());
+                    $data = $this->resolveCallback($data,$this->beforeCreateCallback);
+                    $createdModel = $model->create($data);
                 }
             }
                         
@@ -212,7 +298,7 @@ trait Crud
             },'errors.' . $this->getDeleteMessage());
         });
         $data
-            ->addRule('text:min=2|required','uuid')           
+            ->addRule('text:min=1|required','uuid')           
             ->validate();        
     }
 }
