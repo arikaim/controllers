@@ -16,9 +16,9 @@ use Arikaim\Core\Http\Response;
 use Arikaim\Core\Http\Session;
 use Arikaim\Core\Http\Cookie;
 use Arikaim\Core\Http\Url;
-use Arikaim\Core\Utils\Factory;
 use Arikaim\Core\Routes\Route;
-
+use Arikaim\Core\View\ComponentFactory;
+use Arikaim\Core\Utils\Path;
 use Closure;
 
 /**
@@ -290,7 +290,15 @@ class Controller
     public function loadMessages(string $componentName, ?string $language = null): void
     {       
         $language = $language ?? $this->getDefaultLanguage();
-        $component = $this->get('view')->renderComponent($componentName,[],$language,'json');
+        $component = ComponentFactory::create(
+            $componentName,
+            $language,
+            'json',
+            Path::VIEW_PATH,
+            Path::EXTENSIONS_PATH,
+            $this->get('config')['settings']['primaryTemplate'] ?? 'system'
+        );
+        $component->resolve([]);
         $messages = $component->getProperties();
             
         $this->messages = (empty($messages) == true) ? [] : $messages;           
