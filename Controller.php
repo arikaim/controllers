@@ -627,10 +627,10 @@ class Controller
     public function pageNotFound($response, array $data = [])
     {          
         $language = $this->getPageLanguage($data);
-        $component = $this->get('page')->renderPageNotFound($data,$language);           
+        $component = $this->get('page')->renderPageNotFound($data,$language);                
         $response->getBody()->write($component->getHtmlCode());
 
-        return $response;        
+        return $response->withStatus(404);        
     }
 
     /**
@@ -648,7 +648,7 @@ class Controller
         $component = $this->get('page')->renderSystemError($error,$language,$templateName); 
         $response->getBody()->write($component->getHtmlCode());
 
-        return $response;             
+        return $response->withStatus(400);             
     }
 
     /**
