@@ -12,7 +12,6 @@ namespace Arikaim\Core\Controllers;
 use Psr\Http\Message\ResponseInterface;
 
 use Arikaim\Core\Collection\Arrays;
-use Arikaim\Core\Http\Response;
 use Arikaim\Core\Http\Session;
 use Arikaim\Core\Http\Cookie;
 use Arikaim\Core\Http\Url;
@@ -454,16 +453,17 @@ class Controller
      *
      * @param string $name
      * @param mixed $type
-     * @return bool
+     * @return mixed
      */
-    public function requireAccess($name, $type = null): bool
+    public function requireAccess($name, $type = null)
     {       
         if ($this->hasAccess($name,$type) == true) {
             return true;
         }
         $response = $this->get('responseFactory')->createResponse();
         $response = $this->pageSystemError($response);
-        Response::emit($response); 
+        $emitter = new \Slim\ResponseEmitter();
+        $emitter->emit($response); 
           
         exit();
     }

@@ -252,7 +252,7 @@ class ApiController extends Controller
     {
         $this->result = \array_merge($this->result,[
             'errors'          => $this->errors,
-            'executeion_time' => Utils::getExecutionTime(),
+            'executeion_time' => (\microtime(true) - (\constant('APP_START_TIME') ?? 0)),
             'status'          => ($this->hasError() == true) ? 'error' : 'ok',
             'code'            => ($this->hasError() == true) ? 400 : 200           
         ]);

@@ -10,6 +10,8 @@
 namespace Arikaim\Core\Controllers\Traits;
 
 use Arikaim\Core\Http\Url;
+use Arikaim\Core\Db\Model;
+use  Arikaim\Core\Access\Interfaces\AutoTokensInterface;
 
 /**
  * AccessToken trait
@@ -23,9 +25,10 @@ trait AccessToken
      * @param string $pattern
      * @return string|false
      */
-    public function createProtectedUrl($userId, string $pattern)
+    public function createProtectedUrl(int $userId, string $pattern)
     {
-        $accessToken = $this->get('access')->withProvider('token')->createToken($userId);   
+        // page acess token
+        $accessToken = Model::AccessTokens()->createToken($userId,AutoTokensInterface::PAGE_ACCESS_TOKEN,1800);
 
         return (\is_array($accessToken) == true) ? Url::BASE_URL . '/' . $pattern . '/' . $accessToken['token'] : false;
     }
