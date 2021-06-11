@@ -207,7 +207,7 @@ class Controller
     {
         $path = $request->getUri()->getPath();
 
-        return ($relative == true ) ? $path : DOMAIN . $path;
+        return ($relative == true) ? $path : DOMAIN . $path;
     }
 
     /**

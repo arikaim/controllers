@@ -56,11 +56,11 @@ trait Crud
     /**
      * Resolve callback
      *
-     * @param array $data
+     * @param mixed $data
      * @param Closure|null $callback
-     * @return array
+     * @return mixed
      */
-    private function resolveCallback(array $data, ?Closure $callback): array
+    private function resolveCallback($data, ?Closure $callback)
     {
         return (\is_callable($callback) == true) ? $callback($data) : $data;         
     }
@@ -128,15 +128,15 @@ trait Crud
     /**
      * Apply default field values
      *
-     * @param array $data
-     * @return array
+     * @param mixed $data
+     * @return mixed
      */
-    protected function applyDefaultValues(array $data): array 
+    protected function applyDefaultValues($data) 
     {
         $defaultValues = $this->getDefaultValues();
 
         foreach ($data as $fieldName => $value) {
-            if (empty($value) == true && array_key_exists($fieldName,$defaultValues) == true) {               
+            if (empty($value) == true && \array_key_exists($fieldName,$defaultValues) == true) {               
                 $data[$fieldName] = $defaultValues[$fieldName];
             }
         }
@@ -222,9 +222,9 @@ trait Crud
             if (\is_object($model) == true) {
                 $result = $this->checkColumn($model,$data,$model->id);
                 if ($result == true) {
-                    $data = $this->applyDefaultValues($data->toArray());                  
+                    $data = $this->applyDefaultValues($data);                  
                     $data = $this->resolveCallback($data,$this->beforeUpdateCallback);
-                    $result = (bool)$model->update($data);
+                    $result = (bool)$model->update($data->toArray());
                 }
             }
                         
@@ -258,9 +258,9 @@ trait Crud
             if (\is_object($model) == true) {
                 $result = $this->checkColumn($model,$data);
                 if ($result == true) {
-                    $data = $this->applyDefaultValues($data->toArray());
+                    $data = $this->applyDefaultValues($data);
                     $data = $this->resolveCallback($data,$this->beforeCreateCallback);
-                    $createdModel = $model->create($data);
+                    $createdModel = $model->create($data->toArray());
                 }
             }
                         
