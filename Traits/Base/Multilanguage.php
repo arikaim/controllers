@@ -28,6 +28,20 @@ trait Multilanguage
     protected $messages = [];
 
     /**
+     * Messages component name
+     *
+     * @var string
+     */
+    protected $messagesComponentName = '';
+
+    /**
+     * Messages loaded
+     *
+     * @var boolean
+     */
+    protected $messagesLoaded = false;
+
+    /**
      * Get message
      *
      * @param string $name
@@ -35,6 +49,10 @@ trait Multilanguage
      */
     public function getMessage(string $name): ?string
     {
+        if (isset($this->messages[$name]) == false && $this->messagesLoaded == false) {
+            $this->loadMesasgesComponent();
+        }
+
         return $this->messages[$name] ?? Arrays::getValue($this->messages,$name,'.');        
     }
 
@@ -45,11 +63,27 @@ trait Multilanguage
      * @param string|null $language
      * @return void
      */
-    public function loadMessages(string $componentName, ?string $language = null): void
+    public function loadMessages(string $componentName): void
     {       
-        $language = $language ?? $this->getDefaultLanguage();
+        $this->messagesComponentName = $componentName;
+        $this->messagesLoaded = false;
+    }
+
+    /**
+     * Load messages component
+     *
+     * @param string|null $language
+     * @return void
+     */
+    protected function loadMesasgesComponent(?string $language = null): void
+    {
+        if (empty($this->messagesComponentName) == true) {
+            return;
+        }
+        $language = $language ?? $this->getPageLanguage();
+
         $component = ComponentFactory::create(
-            $componentName,
+            $this->messagesComponentName,
             $language,
             'json',
             Path::VIEW_PATH,
@@ -58,8 +92,9 @@ trait Multilanguage
         );
         $component->resolve([]);
         $messages = $component->getProperties();
-            
-        $this->messages = (empty($messages) == true) ? [] : $messages;           
+        $this->messagesLoaded = true;
+        
+        $this->messages = (empty($messages) == true) ? [] : $messages;    
     }
 
     /**
@@ -68,7 +103,7 @@ trait Multilanguage
      * @param array $data
      * @return string
     */
-    public function getPageLanguage($data): string
+    public function getPageLanguage($data = []): string
     {     
         $language = $data['language'] ?? '';
         if (empty($language) == false) {
