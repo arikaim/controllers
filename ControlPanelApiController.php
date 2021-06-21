@@ -29,7 +29,7 @@ class ControlPanelApiController extends ApiController implements ControlPanelApi
         $name .= 'Controller';
         if (\method_exists($this,$name) == true) {
             $callback = function($arguments) use($name) {
-                $this->requireControlPanelPermission();
+                $this->requireControlPanelPermission($this->getResponse());
                 $this->resolveRouteParams($arguments[0]);
                 ([$this,$name])($arguments[0],$arguments[1],$arguments[2]);
 

@@ -10,18 +10,25 @@
 namespace Arikaim\Core\Controllers;
 
 use Psr\Http\Message\ResponseInterface;
-use Arikaim\Core\Http\Response;
-use Arikaim\Core\Utils\Text;
-use Arikaim\Core\Utils\Utils;
 
-use Arikaim\Core\Controllers\Controller;
+use Arikaim\Core\Controllers\Traits\Base\BaseController;
+use Arikaim\Core\Controllers\Traits\Base\Errors;
+use Arikaim\Core\Controllers\Traits\Base\Multilanguage;
+use Arikaim\Core\Controllers\Traits\Base\UserAccess;
+
 use Closure;
 
 /**
  * Base class for all Api controllers
 */
-class ApiController extends Controller
+class ApiController
 {    
+    use 
+        BaseController,
+        Multilanguage,
+        UserAccess,
+        Errors;
+
     /**
      * Model class name
      *
@@ -37,25 +44,11 @@ class ApiController extends Controller
     protected $result;
 
     /**
-     * Errors list
-     *
-     * @var array
-     */
-    protected $errors = []; 
-
-    /**
      * pretty format json 
      *
      * @var bool
      */
     protected $prettyFormat = false;
-
-    /**
-     * Validation error messages
-     *
-     * @var array|null
-     */
-    protected $validationErrorMessages = null;
 
     /**
      * Constructor
@@ -64,7 +57,8 @@ class ApiController extends Controller
      */
     public function __construct($container = null) 
     {
-        parent::__construct($container);
+        $this->container = $container;
+        $this->init();
        
         // set default validator error callback
         $this->onValidationError(function($errors) {
@@ -88,17 +82,6 @@ class ApiController extends Controller
             'code'   => 200, 
             'errors' => []
         ]; 
-    }
-
-    /**
-     * Set errors 
-     *
-     * @param array $errors
-     * @return void
-     */
-    public function setErrors(array $errors)
-    {
-        $this->errors = $errors;
     }
 
     /**
@@ -157,92 +140,6 @@ class ApiController extends Controller
     }
 
     /**
-     * Set error message
-     *
-     * @param string $errorMessage
-     * @param boolean $condition
-     * @return void
-     */
-    public function setError(string $errorMessage, bool $condition = true) 
-    {
-        if ($condition !== false) {
-            \array_push($this->errors,$errorMessage);  
-        }               
-    }
-
-    /**
-     * Reguire permission check if current user have permission
-     *
-     * @param string $name
-     * @param mixed $type
-     * @return bool
-     */
-    public function requireAccess($name, $type = null): bool
-    {       
-        if ($this->hasAccess($name,$type) == true) {
-            return true;
-        }
-        
-        $this->setError($this->get('errors')->getError('AUTH_FAILED'));                        
-        Response::emit($this->getResponse()); 
-
-        exit();       
-    }
-
-    /**
-     * Clear all errors.
-     *
-     * @return void
-    */
-    public function clearErrors(): void
-    {
-        $this->errors = [];
-    }
-
-    /**
-     * Resolve validation errors
-     *
-     * @param array $errors
-     * @return array
-     */
-    protected function resolveValidationErrors($errors)
-    {
-        $result = [];
-        $this->loadValidationErrors();
-
-        foreach ($errors as $item) {
-            $message = $this->getValidationErrorMessage($item['error_code']);
-            $result[] = [
-                'field_name' => $item['field_name'],
-                'message'    => (empty($message) == false) ? Text::render($message,$item['params']) : $item['error_code']  
-            ];
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get validaiton error message
-     *
-     * @param string $code
-     * @return string|null
-     */
-    protected function getValidationErrorMessage($code)
-    {
-        return (isset($this->validationErrorMessages[$code]) == true) ? $this->validationErrorMessages[$code]['message'] : null;
-    }
-
-    /**
-     * Return true if response have error
-     *
-     * @return boolean
-     */
-    public function hasError(): bool 
-    {    
-        return (\count($this->errors) > 0);         
-    }
-
-    /**
      * Return json 
      * 
      * @param boolean $raw
@@ -252,16 +149,17 @@ class ApiController extends Controller
     {
         $this->result = \array_merge($this->result,[
             'errors'          => $this->errors,
-            'executeion_time' => (\microtime(true) - (\constant('APP_START_TIME') ?? 0)),
+            'execution_time'  => (\microtime(true) - (\constant('APP_START_TIME') ?? 0)),
             'status'          => ($this->hasError() == true) ? 'error' : 'ok',
             'code'            => ($this->hasError() == true) ? 400 : 200           
         ]);
 
         $result = ($raw == true) ? $this->result['result'] : $this->result;
-        $code = ($this->prettyFormat == true) ? Utils::jsonEncode($result) : \json_encode($result,true);      
+        $code = ($this->prettyFormat == true) ? 
+            \json_encode($result,JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : \json_encode($result,true);      
         $progressEnd = $this->result['result']['progress_end'] ?? false;
 
-        return (($progressEnd == true) && ($raw == false)) ? ',' . $code .']' : $code;
+        return (($progressEnd == true) && ($raw == false)) ? ',' . $code . ']' : $code;
     }    
 
     /**
@@ -334,31 +232,11 @@ class ApiController extends Controller
      */
     public function message(string $name)
     {
-        $message = $this->getMessage($name);
+        $message = (\method_exists($this,'getMessage') == true) ? $this->getMessage($name) : null;      
         $message = $message ?? $name;
         
         $this->field('message',$message);  
         
-        return $this;
-    }
-
-    /**
-     * Set error, first find in messages array if not found display name value as error
-     *
-     * @param string $name
-     * @param array $params
-     * @return ApiController
-     */
-    public function error(string $name, array $params = [])
-    {
-        $message = $this->getMessage($name);
-        if (empty($message) == true) {
-            // check for system error
-            $message = $this->get('errors')->getError($name,$params,$name);           
-        }
-        $message = (empty($message) == true) ? $name : $message;        
-        $this->setError($message);
-
         return $this;
     }
 
@@ -370,45 +248,6 @@ class ApiController extends Controller
     public function useJsonPrettyformat()
     {
         $this->prettyFormat = true;
-
-        return $this;
-    }
-
-    /**
-     * Add errors
-     *
-     * @param array $errors
-     * @return void
-     */
-    public function addErrors(array $errors): void
-    {      
-        $this->errors = \array_merge($this->errors,$errors);       
-    }
-
-    /**
-     * Add system error
-     *
-     * @param string $errorCode
-     * @return void
-    */
-    public function addError(string $errorCode): void
-    {
-        $message = $this->getMessage($errorCode);
-        $message = (empty($message) == true) ? $errorCode : $message;
-          
-        $this->errors[] = $message;      
-    }
-
-    /**
-     * Set error message
-     *
-     * @param string $errorMessage
-     * @param boolean $condition
-     * @return Self
-     */
-    public function withError(string $errorMessage, bool $condition = true) 
-    {
-        $this->setError($errorMessage,$condition);
 
         return $this;
     }
@@ -451,15 +290,5 @@ class ApiController extends Controller
         $this->result['result'] = $data;   
 
         return $this;
-    }
-
-    /**
-     * Return errors count
-     *
-     * @return int
-     */
-    public function getErrorCount(): int
-    {
-        return \count($this->errors);
     }
 }
