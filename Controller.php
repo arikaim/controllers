@@ -77,12 +77,12 @@ class Controller
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param CollectionInterface $data   
-     * @param string|null $pageName     
+     * @param string|array|null $pageName     
      * @param boolean $resolveParams 
      * @param string|null $language
      * @return \Psr\Http\Message\ResponseInterface
     */
-    public function pageLoad($request, $response, $data, ?string $pageName = null, ?string $language = null)
+    public function pageLoad($request, $response, $data, $pageName = null, ?string $language = null)
     {       
         $this->resolveRouteParams($request);                        
        
