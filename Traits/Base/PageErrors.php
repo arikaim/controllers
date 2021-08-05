@@ -19,15 +19,16 @@ trait PageErrors
      *    
      * @param ResponseInterface $response
      * @param array $data
+     * @param string|null $templateName
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function pageNotFound($response, array $data = [])
+    public function pageNotFound($response, array $data = [],?string $templateName = null)
     {          
         $language = (\method_exists($this,'getPageLanguage') == true) ? $this->getPageLanguage($data) : null;
-
-        $component = $this->get('page')->renderPageNotFound($data,$language);                
+      
+        $component = $this->get('page')->renderPageNotFound($data,$language,$templateName); 
         $response->getBody()->write($component->getHtmlCode());
-
+      
         return $response->withStatus(404);        
     }
 
