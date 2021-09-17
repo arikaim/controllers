@@ -47,6 +47,16 @@ trait Captcha
     }
 
     /**
+     * Clear captcha errors
+     *
+     * @return void
+     */
+    public function clearCaptchaErrors(): void 
+    {
+        $this->captchaErrors = null;
+    }
+
+    /**
      * Get captcha errors
      *
      * @return array|null

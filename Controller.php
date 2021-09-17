@@ -58,7 +58,7 @@ class Controller
      */
     public function __call($name, $arguments)
     {       
-        $name .= 'Page';
+        $name .= 'Page';        
         if (\method_exists($this,$name) == true) {   
             $callback = function($arguments) use($name) {
                 $this->resolveRouteParams($arguments[0]);
