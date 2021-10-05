@@ -114,7 +114,6 @@ trait Multilanguage
         if (empty($language) == false) {
             return $language;
         } 
-
         $language = Session::get('language',null);
 
         return $language ?? $this->getDefaultLanguage();           
@@ -142,6 +141,6 @@ trait Multilanguage
      */
     public function getDefaultLanguage(): string
     {
-        return $this->get('config')->getString('defaultLanguage','en');
+        return $this->get('config')['settings']['defaultLanguage'] ?? 'en';
     }
 }
