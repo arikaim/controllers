@@ -59,16 +59,18 @@ class Controller
     public function __call($name, $arguments)
     {       
         $name .= 'Page';        
-        if (\method_exists($this,$name) == true) {   
-            $callback = function($arguments) use($name) {
-                $this->resolveRouteParams($arguments[0]);
-                ([$this,$name])($arguments[0],$arguments[1],$arguments[2]);               
-                           
-                return $this->pageLoad($arguments[0],$arguments[1],$arguments[2]);                              
-            };
+        if (\method_exists($this,$name) == true) {            
+            $this->resolveRouteParams($arguments[0]);
+            $result = ([$this,$name])($arguments[0],$arguments[1],$arguments[2]);               
+            
+            if ($result === false) {
+                return $this->pageNotFound($arguments[1],$arguments[2]->toArray());  
+            }
 
-            return $callback($arguments);
-        }       
+            return (empty($result) == true) ? $this->pageLoad($arguments[0],$arguments[1],$arguments[2]) : $result;
+        }   
+
+        return $this->pageNotFound($arguments[1],$arguments[2]->toArray());    
     }
 
     /**
@@ -95,10 +97,10 @@ class Controller
             return $this->pageNotFound($response,$data);    
         } 
         // get current page language
-        if (empty($language) == true) {          
+        if (empty($language) == true) {   
             $language = $this->getPageLanguage($data);              
         }
-   
+
         // set current language
         $this->get('page')->setLanguage($language);
         Session::set('language',$language);  

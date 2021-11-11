@@ -106,14 +106,10 @@ class ApiController
     {
         $name .= 'Controller';
         if (\method_exists($this,$name) == true) {
-            $callback = function($arguments) use($name) {
-                $this->resolveRouteParams($arguments[0]);
-                ([$this,$name])($arguments[0],$arguments[1],$arguments[2]);
+            $this->resolveRouteParams($arguments[0]);
+            ([$this,$name])($arguments[0],$arguments[1],$arguments[2]);
 
-                return $this->getResponse();                 
-            };
-            
-            return $callback($arguments);
+            return $this->getResponse();
         }
     }
 }
