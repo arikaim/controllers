@@ -10,27 +10,12 @@
 namespace Arikaim\Core\Controllers\Traits\Base;
 
 use Arikaim\Core\Utils\Text;
-use Closure;
 
 /**
  * Errors trait
 */
 trait Errors 
 {     
-    /**
-     * Data validatin callback
-     *
-     * @var Closure|null
-    */
-    protected $dataValidCallback = null;
-
-    /**
-     * Data error callback
-     *
-     * @var Closure|null
-    */
-    protected $dataErrorCallback = null;
-
     /**
      * Validation error messages
      *
@@ -168,48 +153,6 @@ trait Errors
     public function clearErrors(): void
     {
         $this->errors = [];
-    }
-
-    /**
-     * Set callback for validation errors
-     *
-     * @param Closure $callback
-     * @return void
-    */
-    public function onValidationError(Closure $callback): void
-    {
-        $this->dataErrorCallback = $callback; 
-    }
-    
-    /**
-     * Set callback for validation done
-     *
-     * @param Closure $callback
-     * @return void
-     */
-    public function onDataValid(Closure $callback): void
-    {
-        $this->dataValidCallback = $callback;    
-    }
-
-    /**
-     * Get data validation callback
-     *
-     * @return Closure|null
-     */
-    public function getDataValidCallback()
-    {
-        return $this->dataValidCallback;
-    }
-
-    /**
-     * Get validation error callback
-     *
-     * @return Closure|null
-     */
-    public function getValidationErrorCallback()
-    {
-        return $this->dataErrorCallback;
     }
 
     /**

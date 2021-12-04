@@ -11,6 +11,7 @@ namespace Arikaim\Core\Controllers\Traits\Base;
 
 use Arikaim\Core\Http\Url;
 use Arikaim\Core\Routes\Route;
+use Closure;
 
 /**
  * Controller trait
@@ -44,6 +45,62 @@ trait BaseController
      * @var array
      */
     protected $params = [];
+
+    /**
+     * Data validatin callback
+     *
+     * @var Closure|null
+    */
+    protected $dataValidCallback = null;
+
+    /**
+     * Data error callback
+     *
+     * @var Closure|null
+    */
+    protected $dataErrorCallback = null;
+
+    /**
+     * Set callback for validation errors
+     *
+     * @param Closure $callback
+     * @return void
+    */
+    public function onValidationError(Closure $callback): void
+    {
+        $this->dataErrorCallback = $callback; 
+    }
+    
+    /**
+     * Set callback for validation done
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    public function onDataValid(Closure $callback): void
+    {
+        $this->dataValidCallback = $callback;    
+    }
+
+    /**
+     * Get data validation callback
+     *
+     * @return Closure|null
+     */
+    public function getDataValidCallback()
+    {
+        return $this->dataValidCallback;
+    }
+
+    /**
+     * Get validation error callback
+     *
+     * @return Closure|null
+     */
+    public function getValidationErrorCallback()
+    {
+        return $this->dataErrorCallback;
+    }
 
     /**
      * Get page url

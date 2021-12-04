@@ -32,14 +32,19 @@ trait ApiResponse
      * Return response 
      *  
      * @param boolean $raw
+     * @param object|null $response
      * @return ResponseInterface
      */
-    public function getResponse(bool $raw = false)
+    public function getResponse(bool $raw = false, $response = null)
     {
         $json = $this->getResponseJson($raw);
 
-        $response = $this->get('responseFactory')->createResponse();
+        $response = $response ?? $this->get('responseFactory')->createResponse();
         $response->getBody()->write($json);
+
+        // closure remove
+        unset($this->dataErrorCallback);
+        unset($this->dataValidCallback);
 
         return $response
             ->withStatus($this->result['code'])
@@ -183,7 +188,7 @@ trait ApiResponse
     {
         $this->result = \array_merge($this->result,[
             'errors'          => $this->errors,
-            'execution_time'  => (\microtime(true) - (\constant('APP_START_TIME') ?? 0)),
+            'execution_time'  => (\microtime(true) - (\defined('APP_START_TIME') ? APP_START_TIME : $GLOBALS['APP_START_TIME'] ?? 0)),
             'status'          => ($this->hasError() == true) ? 'error' : 'ok',
             'code'            => ($this->hasError() == true) ? 400 : 200           
         ]);
