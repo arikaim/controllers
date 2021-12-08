@@ -195,7 +195,8 @@ trait ApiResponse
 
         $result = ($raw == true) ? $this->result['result'] : $this->result;
         $code = ($this->prettyFormat == true) ? 
-            \json_encode($result,JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : \json_encode($result,true);      
+            \json_encode($result,JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : 
+            \json_encode($result,true);      
         $progressEnd = $this->result['result']['progress_end'] ?? false;
 
         return (($progressEnd == true) && ($raw == false)) ? ',' . $code . ']' : $code;
