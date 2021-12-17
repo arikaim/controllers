@@ -100,8 +100,8 @@ trait FileUpload
                 'size'       => $file->getSize(),              
                 'file_name'  => $destinationFileName, 
                 'media_type' => $file->getClientMediaType(),
-                'moved'      => $file->isMoved(),
-                'error'      => ($file->isMoved() == false) ? $file->getError() : false
+                'moved'      => $moveFile,
+                'error'      => $file->getError()
             ];         
         }
 

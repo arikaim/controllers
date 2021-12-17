@@ -9,6 +9,8 @@
 */
 namespace Arikaim\Core\Controllers\Traits\Base;
 
+use Arikaim\Core\Access\AccessDeniedException;
+
 /**
  * UserAccess trait
 */
@@ -18,21 +20,16 @@ trait UserAccess
      * Reguire permission check if current user have permission
      *
      * @param string $name
-     * @param mixed $type
-     * @param object|null $response
+     * @param mixed $type   
      * @return void
+     * @throws AccessDeniedException
      */
-    public function requireAccess(string $name, $type = null, $response = null)
+    public function requireAccess(string $name, $type = null): void
     {       
         if ($this->hasAccess($name,$type) == true) {
-            return true;
+            return;
         }
-        $response = ($response == null) ? $this->get('responseFactory')->createResponse() : $response;
-        $response = $this->pageSystemError($response);
-        $emitter = new \Slim\ResponseEmitter();
-        $emitter->emit($response); 
-          
-        exit();
+        throw new AccessDeniedException('Access Denied');     
     }
 
     /**
@@ -49,26 +46,24 @@ trait UserAccess
      * Return true if user have access permission
      *
      * @param string $name
-     * @param string $type
+     * @param mixed $type
      * @return boolean
      */
-    public function hasAccess($name, $type = null): bool
+    public function hasAccess(string $name, $type = null): bool
     {
         return ($this->has('access') == false) ? false : $this->get('access')->hasAccess($name,$type);        
     }
 
     /**
      * Require control panel permission
-     *
-     * @param object|null
-     * @return mixed
+     *  
+     * @return void
      */
-    public function requireControlPanelPermission($response = null)
+    public function requireControlPanelPermission(): void
     {
-        return $this->requireAccess(
+        $this->requireAccess(
             $this->get('access')->getControlPanelPermission(),
-            $this->get('access')->getFullPermissions(),
-            $response
+            $this->get('access')->getFullPermissions()          
         );
     }
     

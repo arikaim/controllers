@@ -9,6 +9,8 @@
 */
 namespace Arikaim\Core\Controllers\Traits\Base;
 
+use Psr\Http\Message\ResponseInterface;
+
 /**
  * ApiResponse trait
 */
@@ -28,18 +30,18 @@ trait ApiResponse
      */
     protected $prettyFormat = false;
 
-     /**
+    /**
      * Return response 
      *  
      * @param boolean $raw
-     * @param object|null $response
+     * @param ResponseInterface|null $response
      * @return ResponseInterface
      */
-    public function getResponse(bool $raw = false, $response = null)
+    public function getResponse(bool $raw = false, ?ResponseInterface $response = null)
     {
         $json = $this->getResponseJson($raw);
 
-        $response = $response ?? $this->get('responseFactory')->createResponse();
+        $response = $response ?? $this->response;
         $response->getBody()->write($json);
 
         // closure remove

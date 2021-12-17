@@ -9,6 +9,8 @@
 */
 namespace Arikaim\Core\Controllers\Traits\Base;
 
+use Psr\Http\Message\ResponseInterface;
+
 use Arikaim\Core\Http\Url;
 use Arikaim\Core\Routes\Route;
 use Closure;
@@ -61,6 +63,24 @@ trait BaseController
     protected $dataErrorCallback = null;
 
     /**
+     * Response
+     *
+     * @var ResponseInterface|null
+     */
+    protected $response = null;
+
+    /**
+     * Set http response instance
+     *
+     * @param ResponseInterface $response
+     * @return void
+     */
+    public function setHttpResponse(ResponseInterface $response): void
+    {
+        $this->response = $response;
+    }
+
+    /**
      * Set callback for validation errors
      *
      * @param Closure $callback
@@ -99,7 +119,7 @@ trait BaseController
      */
     public function getValidationErrorCallback()
     {
-        return $this->dataErrorCallback;
+        return $this->dataErrorCallback ?? null;
     }
 
     /**
@@ -177,10 +197,9 @@ trait BaseController
      */
     protected function resolveRouteParams($request): bool
     {       
-        $route = $request->getAttribute('route');      
-        $routeParams = (empty($route) == false) ? $route->getArguments() : false;
-
-        if ($routeParams !== false) {
+        $routeParams = $request->getAttribute('route');      
+        
+        if (\is_array($routeParams) == true) {
             // set route params
             $this->pageName = $routeParams['route_page_name'] ?? null;
             if ((\is_null($this->extensionName) == false) && ($this->extensionName != 'core')) {
