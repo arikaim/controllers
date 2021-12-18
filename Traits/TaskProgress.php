@@ -31,28 +31,34 @@ trait TaskProgress
     /**
      * Delay value
      *
-     * @var int|null
+     * @var int
      */
-    protected $progressSleep = null;
+    protected $progressSleep = 1;
 
     /**
      * Init task progress response 
      *
      * @param int|null $totalSteps  
-     * @param int|null $sleep  
+     * @param int $sleep  
      * @return void
      */
-    public function initTaskProgress(?int $totalSteps = null, ?int $sleep = null): void
+    public function initTaskProgress(?int $totalSteps = null, int $sleep = 1): void
     {
         \ini_set('output_buffering','Off'); 
-        \ini_set('zlib.output_compression',0);
-    
-        $this->progressStep = 0;
+        \ini_set('zlib.output_compression',0);       
+        @apache_setenv('no-gzip',1);
+        while (@ob_end_flush());
+
+        \ini_set('implicit_flush',true);
+        \ob_implicit_flush(true);
+
+        $this->progressStep = 1;
         $this->progressSleep = $sleep; 
         $this->totalProgressSteps = $totalSteps;
-        
+      
         \header('Connection: close;');
-        \header('Content-Encoding: none;');          
+        \header('Content-Encoding: none;');   
+        \header('Cache-Control: no-cache'); 
     }
 
     /**
@@ -62,7 +68,8 @@ trait TaskProgress
      */
     public function taskProgressEnd(): void
     {
-        \ob_end_clean();
+        while (@ob_end_flush());
+       
         $this->clearResult();
         $this->field('progress_end',true);
     }
@@ -74,34 +81,21 @@ trait TaskProgress
      */
     public function sendProgressResponse(): void
     {   
-        \ob_end_clean();
-        \ob_start();  
-       
-        // set task progress fiedl
+        // set task progress field
         $this->field('progress',true);
-        $this->progressStep++;
-
         $this->field('progress_step',$this->progressStep);
-        $this->field('progress_total_setps',$this->totalProgressSteps);
+        $this->field('progress_total_steps',$this->totalProgressSteps);
 
-        $response = $this->getResponse();
+        $response = $this->getResponse(false,null,true);
         $body = $response->getBody();
-
-        $beginCode = '';
-        $separator = ',';
-        if ($this->progressStep == 1) {
-            $beginCode = '[';
-            $separator = '';
-        }
-    
-        echo $beginCode . $separator . $body;
-        
-        \ob_flush();      
+               
+        echo $body;
+          
         \flush();
-        \ob_clean();
 
-        if (empty($this->progressSleep) == false) {
-            \sleep($this->progressSleep);
-        }
+        $this->progressStep++;
+        $this->clearResult();  
+
+        \sleep($this->progressSleep);         
     }
 }

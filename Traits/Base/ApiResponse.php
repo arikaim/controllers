@@ -35,11 +35,13 @@ trait ApiResponse
      *  
      * @param boolean $raw
      * @param ResponseInterface|null $response
+     * @param bool $progress
      * @return ResponseInterface
      */
-    public function getResponse(bool $raw = false, ?ResponseInterface $response = null)
+    public function getResponse(bool $raw = false, ?ResponseInterface $response = null, bool $progress = false)
     {
         $json = $this->getResponseJson($raw);
+        $json .= ($progress === true) ? ',' : '';
 
         $response = $response ?? $this->response;
         $response->getBody()->write($json);
@@ -196,11 +198,9 @@ trait ApiResponse
         ]);
 
         $result = ($raw == true) ? $this->result['result'] : $this->result;
-        $code = ($this->prettyFormat == true) ? 
-            \json_encode($result,JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : 
-            \json_encode($result,true);      
-        $progressEnd = $this->result['result']['progress_end'] ?? false;
 
-        return (($progressEnd == true) && ($raw == false)) ? ',' . $code . ']' : $code;
+        return ($this->prettyFormat == true) ? 
+            \json_encode($result,JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : 
+            \json_encode($result,true);              
     }    
 }
