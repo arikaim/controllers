@@ -46,8 +46,8 @@ trait TaskProgress
     {
         \ini_set('output_buffering','Off'); 
         \ini_set('zlib.output_compression',0);       
-        @apache_setenv('no-gzip',1);
-        while (@ob_end_flush());
+        //@apache_setenv('no-gzip',1);
+        //while (@ob_end_flush());
 
         \ini_set('implicit_flush',true);
         \ob_implicit_flush(true);
