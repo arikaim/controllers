@@ -21,15 +21,31 @@ trait UserAccess
      *
      * @param string $name
      * @param mixed $type   
+     * @param string|integer|null $authId  For current user  - null
      * @return void
      * @throws AccessDeniedException
      */
-    public function requireAccess(string $name, $type = null): void
+    public function requireAccess(string $name, $type = null, $authId = null): void
     {       
-        if ($this->hasAccess($name,$type) == true) {
+        if ($this->hasAccess($name,$type,$authId) == true) {
             return;
         }
+
         throw new AccessDeniedException('Access Denied');     
+    }
+
+    /**
+     * Check logged user id 
+     *
+     * @param string|int $userId
+     * @return void
+     * @throws AccessDeniedException
+     */
+    public function requireUser($userId)
+    {     
+        if (empty($userId) == true || $this->getUserId() != $userId) {
+            throw new AccessDeniedException('Access Denied');   
+        }
     }
 
     /**
@@ -47,11 +63,12 @@ trait UserAccess
      *
      * @param string $name
      * @param mixed $type
+     * @param string|integer|null $authId  For current user  - null
      * @return boolean
      */
-    public function hasAccess(string $name, $type = null): bool
+    public function hasAccess(string $name, $type = null, $authId = null): bool
     {
-        return ($this->has('access') == false) ? false : $this->get('access')->hasAccess($name,$type);        
+        return ($this->has('access') == false) ? false : $this->get('access')->hasAccess($name,$type,$authId);        
     }
 
     /**
