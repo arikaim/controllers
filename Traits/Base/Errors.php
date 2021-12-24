@@ -176,7 +176,7 @@ trait Errors
      * @param array $errors
      * @return array
      */
-    protected function resolveValidationErrors($errors): array
+    protected function resolveValidationErrors(array $errors): array
     {
         $result = [];
         $this->loadValidationErrors();

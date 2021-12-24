@@ -25,7 +25,7 @@ trait BaseController
      *
      * @var string|null
      */
-    protected $extensionName = '';   
+    protected $extensionName = null;   
 
     /**
      * Container
@@ -202,11 +202,11 @@ trait BaseController
         if (\is_array($routeParams) == true) {
             // set route params
             $this->pageName = $routeParams['route_page_name'] ?? null;
-            if ((\is_null($this->extensionName) == false) && ($this->extensionName != 'core')) {
+            if (empty($this->extensionName) == true) {
                 $this->extensionName = $routeParams['route_extension_name'] ?? null;
             }
            
-            $this->params = (empty($routeParams['route_options']) == false) ? \json_decode($routeParams['route_options'],true) : [];
+            $this->params = (\is_array($routeParams['route_options']) == true) ? $routeParams['route_options'] : [];
 
             return true;
         }
@@ -303,10 +303,8 @@ trait BaseController
     public function getRequestParams($request): array
     {
         $params = \explode('/',$request->getAttribute('params'));
-        $params = \array_filter($params);
-        $vars = $request->getQueryParams();
-
-        return \array_merge($params,$vars);       
+       
+        return \array_merge(\array_filter($params),$request->getQueryParams());       
     }
 
     /**
