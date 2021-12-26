@@ -9,6 +9,8 @@
 */
 namespace Arikaim\Core\Controllers\Traits\Base;
 
+use Psr\Http\Message\ResponseInterface;
+
 /**
  * PageErrors trait
 */
@@ -22,7 +24,7 @@ trait PageErrors
      * @param string|null $templateName
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function pageNotFound($response, array $data = [], ?string $templateName = null)
+    public function pageNotFound(ResponseInterface $response, array $data = [], ?string $templateName = null): ResponseInterface
     {          
         $language = (\method_exists($this,'getPageLanguage') == true) ? $this->getPageLanguage($data) : null;
 
@@ -40,7 +42,7 @@ trait PageErrors
      * @param string $templateName
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function pageSystemError($response, $error = [], string $templateName = 'system')
+    public function pageSystemError(ResponseInterface $response, $error = [], string $templateName = 'system'): ResponseInterface
     {     
         $language = (\method_exists($this,'getPageLanguage') == true) ? $this->getPageLanguage($error) : null;
        

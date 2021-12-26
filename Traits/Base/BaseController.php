@@ -204,8 +204,7 @@ trait BaseController
             $this->pageName = $routeParams['route_page_name'] ?? null;
             if (empty($this->extensionName) == true) {
                 $this->extensionName = $routeParams['route_extension_name'] ?? null;
-            }
-            $options = 
+            }          
             $this->params = (\is_array($routeParams['route_options'] ?? null) == true) ? $routeParams['route_options'] : [];
 
             return true;

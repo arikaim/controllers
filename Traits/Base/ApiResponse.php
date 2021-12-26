@@ -38,7 +38,7 @@ trait ApiResponse
      * @param bool $progress
      * @return ResponseInterface
      */
-    public function getResponse(bool $raw = false, ?ResponseInterface $response = null, bool $progress = false)
+    public function getResponse(bool $raw = false, ?ResponseInterface $response = null, bool $progress = false): ResponseInterface
     {
         $json = $this->getResponseJson($raw);
         $json .= ($progress === true) ? ',' : '';

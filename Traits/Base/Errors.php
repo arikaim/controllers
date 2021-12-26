@@ -46,7 +46,7 @@ trait Errors
      *
      * @param string $name
      * @param array $params
-     * @return ApiController
+     * @return Self
      */
     public function error(string $name, array $params = [])
     {

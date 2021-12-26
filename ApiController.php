@@ -48,6 +48,7 @@ class ApiController
         $this->onValidationError(function($errors) {
             $errors = $this->resolveValidationErrors($errors);
             $this->setErrors($errors);
+            return $errors;
         });
 
         $this->clearResult(); 
