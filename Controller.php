@@ -105,8 +105,8 @@ class Controller
         $this->get('page')->setLanguage($language);
         Session::set('language',$language);  
        
-        // current url path
-        $data['current_path'] = $request->getAttribute('current_path');
+        // current url path     
+        $data['current_path'] = $request->getUri()->getPath();
         
         $component = $this->get('page')->render($pageName,$data,$language);
         $response->getBody()->write($component->getHtmlCode());
