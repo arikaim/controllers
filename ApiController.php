@@ -55,6 +55,24 @@ class ApiController
     }
     
     /**
+     * Run {method name}Controller function if exist
+     *
+     * @param string $name
+     * @param array $arguments
+     * @return mixed
+     */
+    public function __call($name, $arguments)
+    {
+        $name .= 'Controller';
+        if (\method_exists($this,$name) == true) {
+            $this->resolveRouteParams($arguments[0]);
+            ([$this,$name])($arguments[0],$arguments[1],$arguments[2]);
+
+            return $this->getResponse();
+        }
+    }
+
+    /**
      * Init controller, override this method in child classes
      *
      * @return void
@@ -94,23 +112,5 @@ class ApiController
     public function getModelClass(): ?string
     {
         return $this->modelClass;
-    }
-
-    /**
-     * Run {method name}Controller function if exist
-     *
-     * @param string $name
-     * @param array $arguments
-     * @return mixed
-     */
-    public function __call($name, $arguments)
-    {
-        $name .= 'Controller';
-        if (\method_exists($this,$name) == true) {
-            $this->resolveRouteParams($arguments[0]);
-            ([$this,$name])($arguments[0],$arguments[1],$arguments[2]);
-
-            return $this->getResponse();
-        }
     }
 }
