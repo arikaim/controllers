@@ -123,6 +123,36 @@ trait BaseController
     }
 
     /**
+     * Set no cache in Cache-Control
+     *
+     * @param @return \Psr\Http\Message\ResponseInterface
+     * @return @return \Psr\Http\Message\ResponseInterface
+     */
+    public function noCacheHeaders($response)
+    {
+        return $response
+            ->withoutHeader('Cache-Control')
+            ->withHeader('Cache-Control','no-store, no-cache, must-revalidate, max-age=0')           
+            ->withHeader('Pragma','no-cache')              
+            ->withHeader('Expires','Sat, 26 Jul 1997 05:00:00 GMT');  
+    }
+    
+    /**
+     * Set redirect headers
+     *
+     * @param \Psr\Http\Message\ResponseInterface $response
+     * @param string $url
+     * @return \Psr\Http\Message\ResponseInterface
+     */
+    public function withRedirect($response, string $url)
+    {
+        return $this
+            ->noCacheHeaders($response)      
+            ->withHeader('Location',$url)
+            ->withStatus(307);
+    }
+
+    /**
      * Get page url
      *
      * @param string|null $routeName
