@@ -18,6 +18,7 @@ use Arikaim\Core\Controllers\Traits\Base\PageErrors;
 use Arikaim\Core\Controllers\Traits\Base\Multilanguage;
 use Arikaim\Core\Controllers\Traits\Base\UserAccess;
 
+
 /**
  * Base class for all Controllers
 */
