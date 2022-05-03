@@ -86,6 +86,19 @@ trait ApiResponse
     }
 
     /**
+     * Set fields
+     *
+     * @param array $data
+     * @param string|null $filedName
+     * @return Self
+     */
+    public function fields(array $data, ?string $filedName = null)
+    {
+        $this->setResultFields($data,$filedName);
+        return $this;
+    }
+
+    /**
      * Set json pretty format to true
      *
      * @return Self

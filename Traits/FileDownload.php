@@ -88,13 +88,20 @@ trait FileDownload
      *
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param string $imagePath   
-     * @param string $filesystem
+     * @param string|null $filesystem
      * @param string|null $mimeType  
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function viewImage($response, string $imagePath, string $filesystem = 'storage', ?string $mimeType = null)
+    public function viewImage($response, string $imagePath, ?string $filesystem = 'storage', ?string $mimeType = null)
     { 
-        $data = $this->get('storage')->read($imagePath,$filesystem);
+        if (empty($filesystem) == true) {
+            $data = File::read($imagePath);
+            $type = $mimeType ?? File::getMimetype($imagePath);
+        } else {
+            $data = $this->get('storage')->read($imagePath,$filesystem);
+            $type = $mimeType ?? File::getMimetype($this->get('storage')->getFullPath($imagePath,$filesystem));
+        }
+       
         $type = $mimeType ?? File::getMimetype($this->get('storage')->getFullPath($imagePath,$filesystem));
 
         return $this->viewImageHeaders($response,$type,$data);

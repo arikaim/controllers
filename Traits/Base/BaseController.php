@@ -291,7 +291,7 @@ trait BaseController
     }
 
     /**
-     * Return tru if container item esist
+     * Return true if container item esist
      *
      * @param string $id
      * @return bool
@@ -299,6 +299,17 @@ trait BaseController
     public function has(string $id): bool
     {
         return $this->container->has($id);
+    }
+
+    /**
+     * Return true service exists
+     *
+     * @param string $id
+     * @return boolean
+     */
+    public function hasService(string $id): bool
+    {
+        return $this->container->get('service')->has($id);
     }
 
     /**
