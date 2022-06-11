@@ -46,8 +46,6 @@ trait Status
      */
     public function setStatusController($request, $response, $data)
     {
-        $this->requireControlPanelPermission();
-
         $this->onDataValid(function($data) {
             $model = Model::create($this->getModelClass(),$this->getExtensionName());
             if (\is_object($model) == false) {
@@ -87,8 +85,6 @@ trait Status
      */
     public function setDefaultController($request, $response, $data)
     {
-        $this->requireControlPanelPermission();
-
         $this->onDataValid(function($data) {       
             $uuid = $data->get('uuid');
             $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
