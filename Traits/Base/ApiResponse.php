@@ -59,12 +59,13 @@ trait ApiResponse
      * Add message to response, first find in messages array if not found display name value as message 
      *
      * @param string $name  
+     * @param string|null $default
      * @return ApiController
      */
-    public function message(string $name)
+    public function message(string $name, ?string $default = null)
     {
         $message = (\method_exists($this,'getMessage') == true) ? $this->getMessage($name) : null;      
-        $message = $message ?? $name;
+        $message = $message ?? $default ?? $name;
         
         $this->field('message',$message);  
         
