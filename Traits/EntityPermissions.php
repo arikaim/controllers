@@ -37,7 +37,56 @@ trait EntityPermissions
     }
 
     /**
-     * Add user permission
+     * Add entity permission
+     *
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param \Psr\Http\Message\ResponseInterface $response
+     * @param Validator $data
+     * @return Psr\Http\Message\ResponseInterface
+     */
+    public function addPermissionController($request, $response, $data)
+    {
+        $data->validate(true);
+        
+        $entityId = $data->get('entity');
+        $permissions = $data->get('permissions','full');
+        $permissionName = $data->get('permission_name',null);
+        $type = $data->get('type',null);
+        $typeId = $data->get('type_id',null);
+
+        $model = Model::create($this->getModelClass(),$this->getExtensionName());
+        if (\is_object($model) == false) {
+            $this->error('errors.id');
+            return;
+        }
+
+        $permissionModel = Model::Permissions()->findPermission($permissionName);
+        if (\is_object($permissionModel) == false) {
+            $this->error('Not vlaid permission');
+            return;
+        }
+
+        $permission = $model->addPermission($entityId,$typeId,$permissions,$type,$permissionModel->id); 
+
+        $this->setResponse(\is_object($permission),function() use($permission) {   
+            // dispatch event
+            $this->dispatch('entity.permission.add',[
+                'permission' => $permission->toArray(),
+                'public'     => empty($permission->relation_id),
+                'type'       => $permission->relation_type,
+                'related'    => ($permission->relation_type == 'user') ? $permission->related->toArray() : null,
+                'entity'     => $permission->entity->toArray()
+            ]);
+
+            $this
+                ->message($this->getAddPermissionMessage())
+                ->field('uuid',$permission->uuid);
+                
+        },'errors.permission.add');
+    }
+
+    /**
+     * Add user or group permission
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
