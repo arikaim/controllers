@@ -36,32 +36,31 @@ trait UpdateModelField
      */
     public function softDeleteController($request, $response, $data)
     {
-        $this->onDataValid(function($data) {                  
-            $uuid = $data->get('uuid');
-            $fieldName =  $data->get('field_name');
-            $fieldValue = $data->get('field_value');
-
-            $model = Model::create($this->getModelClass(),$this->getExtensionName());
-            if (\is_object($model) == false) {
-                $this->error('errors.class');
-                return;
-            }
-            $model = $model->findById($uuid);
-
-            $result = (\is_object($model) == false) ? false : $model->update([
-                $fieldName => $fieldValue
-            ]);
-              
-            $this->setResponse($result,function() use($uuid,$fieldName) {              
-                $this
-                    ->message($this->getUpdateFieldMessage())
-                    ->field('uuid',$uuid)
-                    ->field('field_name',$fieldName);                  
-            },'errors.filed.update');
-        });
         $data
             ->addRule('text:min=1|required','uuid') 
             ->addRule('text:min=1|required','field_name')           
-            ->validate();       
+            ->validate(true);     
+
+        $uuid = $data->get('uuid');
+        $fieldName =  $data->get('field_name');
+        $fieldValue = $data->get('field_value');
+
+        $model = Model::create($this->getModelClass(),$this->getExtensionName());
+        if ($model == null) {
+            $this->error('errors.class');
+            return;
+        }
+        $model = $model->findById($uuid);
+
+        $result = (\is_object($model) == false) ? false : $model->update([
+            $fieldName => $fieldValue
+        ]);
+            
+        $this->setResponse($result,function() use($uuid,$fieldName) {              
+            $this
+                ->message($this->getUpdateFieldMessage())
+                ->field('uuid',$uuid)
+                ->field('field_name',$fieldName);                  
+        },'errors.filed.update');
     }
 }

@@ -40,24 +40,23 @@ trait Options
      */
     public function saveController($request, $response, $data)
     {  
-        $this->onDataValid(function($data) {            
-            $referenceId = $data->get('id');
-            $options = $data->get('options',[]);
-            $model = Model::create($this->getModelClass(),$this->getExtensionName());
-            if (\is_object($model) == false) {
-                $this->error('errors.id');
-                return;
-            }
+        $data->validate(true);
 
-            $result = $model->saveOptions($referenceId,$options);
-            
-            $this->setResponse($result,function() use($model) {
-                $this
-                    ->message('orm.options.save')
-                    ->field('uuid',$model->uuid);                   
-            },'errors.options.save');
-        });
-        $data->validate();
+        $referenceId = $data->get('id');
+        $options = $data->get('options',[]);
+        $model = Model::create($this->getModelClass(),$this->getExtensionName());
+        if ($model == null) {
+            $this->error('errors.id');
+            return;
+        }
+
+        $result = $model->saveOptions($referenceId,$options);
+        
+        $this->setResponse($result,function() use($model) {
+            $this
+                ->message('orm.options.save')
+                ->field('uuid',$model->uuid);                   
+        },'errors.options.save');
     }
 
     /**
@@ -85,25 +84,24 @@ trait Options
      */
     public function saveOptionController($request, $response, $data)
     {  
-        $this->onDataValid(function($data) {            
-            $referenceId = $data->get('id');
-            $key = $data->get('key',null);
-            $value = $data->get('value',null);
+        $data->validate(true);
 
-            $model = Model::create($this->getModelClass(),$this->getExtensionName());
-            if (\is_object($model) == false) {
-                $this->error('errors.id');
-                return;
-            }
+        $referenceId = $data->get('id');
+        $key = $data->get('key',null);
+        $value = $data->get('value',null);
 
-            $result = $model->saveOption($referenceId,$key,$value);
-            
-            $this->setResponse($result,function() use($model) {
-                $this
-                    ->message('orm.options.save')
-                    ->field('uuid',$model->uuid);                   
-            },'errors.options.save');
-        });
-        $data->validate();
+        $model = Model::create($this->getModelClass(),$this->getExtensionName());
+        if ($model == null) {
+            $this->error('errors.id');
+            return;
+        }
+
+        $result = $model->saveOption($referenceId,$key,$value);
+        
+        $this->setResponse($result,function() use($model) {
+            $this
+                ->message('orm.options.save')
+                ->field('uuid',$model->uuid);                   
+        },'errors.options.save');
     }
 }

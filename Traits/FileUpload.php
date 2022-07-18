@@ -47,18 +47,17 @@ trait FileUpload
     public function uploadController($request, $response, $data)
     {
         $this->requireControlPanelPermission();
-
-        $this->onDataValid(function($data) use ($request) {                
-            $destinationPath = $data->get('path','');
-            $files = $this->uploadFiles($request,$destinationPath);
-               
-            $this->setResponse(\is_array($files),function() use($files) {                  
-                $this
-                    ->message($this->getFileUploadMessage())
-                    ->field('files',$files);                                  
-            },'errors.upload');           
-        });
-        $data->validate();          
+        
+        $data->validate(true);      
+       
+        $destinationPath = $data->get('path','');
+        $files = $this->uploadFiles($request,$destinationPath);
+            
+        $this->setResponse(\is_array($files),function() use($files) {                  
+            $this
+                ->message($this->getFileUploadMessage())
+                ->field('files',$files);                                  
+        },'errors.upload');           
     }
 
     /**

@@ -46,33 +46,32 @@ trait Status
      */
     public function setStatusController($request, $response, $data)
     {
-        $this->onDataValid(function($data) {
-            $model = Model::create($this->getModelClass(),$this->getExtensionName());
-            if (\is_object($model) == false) {
-                $this->error('Not vlaid model.');
-                return false;
-            }
-            $status = $data->get('status',1);                
-            $uuid = $data->get('uuid');
-            
-            if (\is_array($uuid) == true) {
-                $model = $model->findMultiple($uuid);
-                $result = $model->update(['status' => $status]);
-            } else {
-                $model = $model->findById($uuid);
-                $result = (\is_object($model) == true) ? $model->setStatus($status) : false; 
-            }
-           
-            $this->setResponse($result,function() use($uuid,$status) {              
-                $this
-                    ->message($this->getStatusChangedMessage())
-                    ->field('uuid',$uuid)
-                    ->field('status',$status);
-            },'errors.status');
-        });
         $data
             ->addRule('checkList:items=0,1,2,3,4,5,6,7,8,9,10,toggle','status')
-            ->validate(); 
+            ->validate(true); 
+
+        $model = Model::create($this->getModelClass(),$this->getExtensionName());
+        if ($model == null) {
+            $this->error('Not vlaid model.');
+            return false;
+        }
+        $status = $data->get('status',1);                
+        $uuid = $data->get('uuid');
+        
+        if (\is_array($uuid) == true) {
+            $model = $model->findMultiple($uuid);
+            $result = $model->update(['status' => $status]);
+        } else {
+            $model = $model->findById($uuid);
+            $result = (\is_object($model) == true) ? $model->setStatus($status) : false; 
+        }
+        
+        $this->setResponse($result,function() use($uuid,$status) {              
+            $this
+                ->message($this->getStatusChangedMessage())
+                ->field('uuid',$uuid)
+                ->field('status',$status);
+        },'errors.status');
     }
 
     /**
@@ -85,24 +84,23 @@ trait Status
      */
     public function setDefaultController($request, $response, $data)
     {
-        $this->onDataValid(function($data) {       
-            $uuid = $data->get('uuid');
-            $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-            if (\is_object($model) == false) {
-                $this->error('errors.default');
-                return;
-            }
+        $data->validate(true); 
+     
+        $uuid = $data->get('uuid');
+        $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
+        if (\is_object($model) == false) {
+            $this->error('errors.default');
+            return;
+        }
 
-            $result = $model->setDefault($uuid);
-        
-            $this->setResponse($result,function() use($uuid) {              
-                $this
-                    ->message($this->getDefaultMessage())
-                    ->field('uuid',$uuid);
-                  
-            },'errors.default');
-        });
-        $data->validate(); 
+        $result = $model->setDefault($uuid);
+    
+        $this->setResponse($result,function() use($uuid) {              
+            $this
+                ->message($this->getDefaultMessage())
+                ->field('uuid',$uuid);
+                
+        },'errors.default');
     }
 
     /**
@@ -115,24 +113,23 @@ trait Status
      */
     public function setMultiuserDefaultController($request, $response, $data)
     {
-        $this->onDataValid(function($data) {                  
-            $uuid = $data->get('uuid');
-            $userId = $data->get('user_id',$this->getUserId());            
-            $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
+        $data->validate(true);     
+
+        $uuid = $data->get('uuid');
+        $userId = $data->get('user_id',$this->getUserId());            
+        $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
+        
+        if (\is_object($model) == false) {
+            $this->error('errors.class');
+            return;
+        }
+
+        $result = $model->setDefault($uuid,$userId);
             
-            if (\is_object($model) == false) {
-                $this->error('errors.class');
-                return;
-            }
-    
-            $result = $model->setDefault($uuid,$userId);
-              
-            $this->setResponse($result,function() use($uuid) {              
-                $this
-                    ->message($this->getDefaultMessage())
-                    ->field('uuid',$uuid);                  
-            },'errors.default');
-        });
-        $data->validate();       
+        $this->setResponse($result,function() use($uuid) {              
+            $this
+                ->message($this->getDefaultMessage())
+                ->field('uuid',$uuid);                  
+        },'errors.default');
     }
 }

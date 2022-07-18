@@ -185,21 +185,18 @@ trait Crud
     {
         $this->requireControlPanelPermission();
 
-        $this->onDataValid(function($data) {                  
-            $uuid = $data->get('uuid');
-            $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-          
-            $result = \is_object($model);
-                        
-            $this->setResponse($result,function() use($model) {              
-                $this
-                    ->message($this->getReadMessage())
-                    ->setResultFields($model->toArray());                  
-            },'errors.' . $this->getReadMessage());
-        });
         $data
             ->addRule('text:min=1|required','uuid')           
-            ->validate();        
+            ->validate(true); 
+        
+        $uuid = $data->get('uuid');
+        $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
+                    
+        $this->setResponse(\is_object($model),function() use($model) {              
+            $this
+                ->message($this->getReadMessage())
+                ->setResultFields($model->toArray());                  
+        },'errors.' . $this->getReadMessage());
     }
 
     /**
@@ -214,29 +211,28 @@ trait Crud
     {
         $this->requireControlPanelPermission();
 
-        $this->onDataValid(function($data) {                  
-            $uuid = $data->get('uuid');
-            $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-         
-            $result = false;
-            if (\is_object($model) == true) {
-                $result = $this->checkColumn($model,$data,$model->id);
-                if ($result == true) {
-                    $data = $this->applyDefaultValues($data);                  
-                    $data = $this->resolveCallback($data,$this->beforeUpdateCallback);
-                    $result = (bool)$model->update($data->toArray());
-                }
-            }
-                        
-            $this->setResponse($result,function() use($uuid) {              
-                $this
-                    ->message($this->getUpdateMessage())
-                    ->field('uuid',$uuid);                  
-            },'errors.' . $this->getUpdateMessage());
-        });
         $data
             ->addRule('text:min=1|required','uuid')           
-            ->validate();        
+            ->validate(true);    
+ 
+        $uuid = $data->get('uuid');
+        $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
+        
+        $result = false;
+        if (\is_object($model) == true) {
+            $result = $this->checkColumn($model,$data,$model->id);
+            if ($result == true) {
+                $data = $this->applyDefaultValues($data);                  
+                $data = $this->resolveCallback($data,$this->beforeUpdateCallback);
+                $result = (bool)$model->update($data->toArray());
+            }
+        }
+                    
+        $this->setResponse($result,function() use($uuid) {              
+            $this
+                ->message($this->getUpdateMessage())
+                ->field('uuid',$uuid);                  
+        },'errors.' . $this->getUpdateMessage());   
     }
 
     /**
@@ -251,27 +247,26 @@ trait Crud
     {
         $this->requireControlPanelPermission();
 
-        $this->onDataValid(function($data) {                             
-            $model = Model::create($this->getModelClass(),$this->getExtensionName());
-         
-            $createdModel = null;
-            if (\is_object($model) == true) {
-                $result = $this->checkColumn($model,$data);
-                if ($result == true) {
-                    $data = $this->applyDefaultValues($data);
-                    $data = $this->resolveCallback($data,$this->beforeCreateCallback);
-                    $createdModel = $model->create($data->toArray());
-                }
-            }
-                        
-            $this->setResponse(\is_object($createdModel),function() use($createdModel) {              
-                $this
-                    ->message($this->getCreateMessage())
-                    ->field('uuid',$createdModel->uuid);                  
-            },'errors.' . $this->getCreateMessage());
-        });
         $data                  
-            ->validate();        
+            ->validate(true);    
+
+        $model = Model::create($this->getModelClass(),$this->getExtensionName());
+        
+        $createdModel = null;
+        if (\is_object($model) == true) {
+            $result = $this->checkColumn($model,$data);
+            if ($result == true) {
+                $data = $this->applyDefaultValues($data);
+                $data = $this->resolveCallback($data,$this->beforeCreateCallback);
+                $createdModel = $model->create($data->toArray());
+            }
+        }
+                    
+        $this->setResponse(\is_object($createdModel),function() use($createdModel) {              
+            $this
+                ->message($this->getCreateMessage())
+                ->field('uuid',$createdModel->uuid);                  
+        },'errors.' . $this->getCreateMessage());
     }
 
     /**
@@ -286,19 +281,18 @@ trait Crud
     {
         $this->requireControlPanelPermission();
 
-        $this->onDataValid(function($data) {                  
-            $uuid = $data->get('uuid');
-            $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-            $result = (\is_object($model) == false) ? false : (bool)$model->delete();
-               
-            $this->setResponse($result,function() use($uuid) {              
-                $this
-                    ->message($this->getDeleteMessage())
-                    ->field('uuid',$uuid);                  
-            },'errors.' . $this->getDeleteMessage());
-        });
         $data
             ->addRule('text:min=1|required','uuid')           
-            ->validate();        
+            ->validate(true);  
+
+        $uuid = $data->get('uuid');
+        $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
+        $result = (\is_object($model) == false) ? false : (bool)$model->delete();
+            
+        $this->setResponse($result,function() use($uuid) {              
+            $this
+                ->message($this->getDeleteMessage())
+                ->field('uuid',$uuid);                  
+        },'errors.' . $this->getDeleteMessage());
     }
 }

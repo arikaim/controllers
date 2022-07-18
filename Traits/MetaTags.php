@@ -36,24 +36,23 @@ trait MetaTags
     */
     public function updateMetaTagsController($request, $response, $data) 
     {
-        $this->onDataValid(function($data) { 
-            $uuid = $data->get('uuid');   
-            $language = $this->getPageLanguage($data);     
-            $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);             
-            if (\is_object($model) == false) {
-                $this->error('errors.id');
-                return;
-            }
+        $data->validate(true); 
+      
+        $uuid = $data->get('uuid');   
+        $language = $this->getPageLanguage($data);     
+        $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);             
+        if (\is_object($model) == false) {
+            $this->error('errors.id');
+            return;
+        }
+    
+        $info = $data->slice(['meta_title','meta_description','meta_keywords']);
+        $translationModel = $model->saveTranslation($info,$language); 
         
-            $info = $data->slice(['meta_title','meta_description','meta_keywords']);
-            $translationModel = $model->saveTranslation($info,$language); 
-          
-            $this->setResponse(\is_object($translationModel),function() use($translationModel) {               
-                $this
-                    ->message($this->getUpdateMetaTagsMessage())
-                    ->field('uuid',$translationModel->uuid);   
-            },'errors.metatags');
-        });
-        $data->validate(); 
+        $this->setResponse(\is_object($translationModel),function() use($translationModel) {               
+            $this
+                ->message($this->getUpdateMetaTagsMessage())
+                ->field('uuid',$translationModel->uuid);   
+        },'errors.metatags'); 
     }
 }

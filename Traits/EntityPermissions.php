@@ -55,13 +55,13 @@ trait EntityPermissions
         $typeId = $data->get('type_id',null);
 
         $model = Model::create($this->getModelClass(),$this->getExtensionName());
-        if (\is_object($model) == false) {
+        if ($model == null) {
             $this->error('errors.id');
             return;
         }
 
         $permissionModel = Model::Permissions()->findPermission($permissionName);
-        if (\is_object($permissionModel) == false) {
+        if ($permissionModel == null) {
             $this->error('Not vlaid permission');
             return;
         }
@@ -95,64 +95,63 @@ trait EntityPermissions
      */
     public function addUserPermissionController($request, $response, $data)
     {
-        $this->onDataValid(function($data) {   
-            $users = Model::Users();                    
-            $entityId = $data->get('entity');
-            $user = \trim($data->get('user',null));
-            $user = (empty($user) == true) ? $this->getUserId() : $user;
-            
-            $group = $data->get('group',null);
-            $type = $data->get('type','user');
+        $data->validate(true); 
+       
+        $users = Model::Users();                    
+        $entityId = $data->get('entity');
+        $user = \trim($data->get('user',null));
+        $user = (empty($user) == true) ? $this->getUserId() : $user;
+        
+        $group = $data->get('group',null);
+        $type = $data->get('type','user');
 
-            $permissions = $data->get('permissions','full');
-            $permissionName = $data->get('permission_name',null);
+        $permissions = $data->get('permissions','full');
+        $permissionName = $data->get('permission_name',null);
 
-            $model = Model::create($this->getModelClass(),$this->getExtensionName());
-            if (\is_object($model) == false) {
-                $this->error('errors.id');
-                return;
-            }
+        $model = Model::create($this->getModelClass(),$this->getExtensionName());
+        if (\is_object($model) == false) {
+            $this->error('errors.id');
+            return;
+        }
 
-            $permissionModel = (empty($permissionName) == false) ? Model::Permissions()->findPermission($permissionName) : null;
-            $permissionId = (\is_object($permissionModel) == true) ? $permissionModel->id : null;
-            $permission = null;
+        $permissionModel = (empty($permissionName) == false) ? Model::Permissions()->findPermission($permissionName) : null;
+        $permissionId = (\is_object($permissionModel) == true) ? $permissionModel->id : null;
+        $permission = null;
 
-            if ($type == 'user') {
-                $userFound = $users->findUser($user);
-                if (\is_object($userFound) == true) {
-                    $permission = $model->addUserPermission($entityId,$userFound->id,$permissions,$permissionId); 
-                } else {
-                    $this->error('errors.permission.user');
-                    return;
-                }              
+        if ($type == 'user') {
+            $userFound = $users->findUser($user);
+            if (\is_object($userFound) == true) {
+                $permission = $model->addUserPermission($entityId,$userFound->id,$permissions,$permissionId); 
             } else {
-                // add group permission
-                $userGroup = Model::UserGroups()->findByColumn($group,['id','uuid','slug']);
-                if (\is_object($userGroup) == true) {
-                    $permission = $model->addGroupPermission($entityId,$userGroup->id,$permissions,$permissionId); 
-                } else {
-                    $this->error('errors.permission.group');
-                    return;
-                }   
-            }
-         
-            $this->setResponse(\is_object($permission),function() use($permission) {   
-                // dispatch event
-                $this->dispatch('entity.permission.add',[
-                    'permission' => $permission->toArray(),
-                    'public'     => empty($permission->relation_id),
-                    'type'       => $permission->relation_type,
-                    'related'    => ($permission->relation_type == 'user') ? $permission->related->toArray() : null,
-                    'entity'     => $permission->entity->toArray()
-                ]);
+                $this->error('errors.permission.user');
+                return;
+            }              
+        } else {
+            // add group permission
+            $userGroup = Model::UserGroups()->findByColumn($group,['id','uuid','slug']);
+            if (\is_object($userGroup) == true) {
+                $permission = $model->addGroupPermission($entityId,$userGroup->id,$permissions,$permissionId); 
+            } else {
+                $this->error('errors.permission.group');
+                return;
+            }   
+        }
+        
+        $this->setResponse(\is_object($permission),function() use($permission) {   
+            // dispatch event
+            $this->dispatch('entity.permission.add',[
+                'permission' => $permission->toArray(),
+                'public'     => empty($permission->relation_id),
+                'type'       => $permission->relation_type,
+                'related'    => ($permission->relation_type == 'user') ? $permission->related->toArray() : null,
+                'entity'     => $permission->entity->toArray()
+            ]);
 
-                $this
-                    ->message($this->getAddPermissionMessage())
-                    ->field('uuid',$permission->uuid);
-                    
-            },'errors.permission.add');
-        });
-        $data->validate(); 
+            $this
+                ->message($this->getAddPermissionMessage())
+                ->field('uuid',$permission->uuid);
+                
+        },'errors.permission.add');
     }
 
     /**
@@ -165,32 +164,31 @@ trait EntityPermissions
      */
     public function deletePermissionController($request, $response, $data)
     {
-        $this->onDataValid(function($data) {       
-            $uuid = $data->get('uuid');
-            $permission = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-            
-            if (\is_object($permission) == false) {
-                $this->error('errors.permission.id');
-                return;
-            }         
-            $result = $permission->delete();
+        $data->validate(true); 
 
-            $this->setResponse($result,function() use($uuid,$permission) {   
-                // dispatch event  
-                $this->dispatch('entity.permission.delete',[
-                    'permission' => $permission->toArray(),
-                    'public'     => empty($permission->relation_id),
-                    'type'       => $permission->relation_type,
-                    'related'    => ($permission->relation_type == 'user') ? $permission->related->toArray() : null,
-                    'entity'     => $permission->entity->toArray()
-                ]);         
+        $uuid = $data->get('uuid');
+        $permission = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
+        
+        if (\is_object($permission) == false) {
+            $this->error('errors.permission.id');
+            return;
+        }         
+        $result = $permission->delete();
 
-                $this
-                    ->message($this->getDeletePermissionMessage())
-                    ->field('uuid',$uuid);
-                  
-            },'errors.permission.delete');
-        });
-        $data->validate(); 
+        $this->setResponse($result,function() use($uuid,$permission) {   
+            // dispatch event  
+            $this->dispatch('entity.permission.delete',[
+                'permission' => $permission->toArray(),
+                'public'     => empty($permission->relation_id),
+                'type'       => $permission->relation_type,
+                'related'    => ($permission->relation_type == 'user') ? $permission->related->toArray() : null,
+                'entity'     => $permission->entity->toArray()
+            ]);         
+
+            $this
+                ->message($this->getDeletePermissionMessage())
+                ->field('uuid',$uuid);
+                
+        },'errors.permission.delete');
     }
 }

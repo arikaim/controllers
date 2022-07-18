@@ -46,27 +46,27 @@ trait SoftDelete
      */
     public function softDeleteController($request, $response, $data)
     {
-        $this->onDataValid(function($data) {                  
-            $uuid = $data->get('uuid');
-
-            $model = Model::create($this->getModelClass(),$this->getExtensionName());
-            if (\is_object($model) == false) {
-                $this->error('errors.class');
-                return;
-            }
-            $model = $model->findById($uuid);
-
-            $result = (\is_object($model) == false) ? false : $model->softDelete();
-              
-            $this->setResponse($result,function() use($uuid) {              
-                $this
-                    ->message($this->getSoftDeleteMessage())
-                    ->field('uuid',$uuid);                  
-            },'errors.delete');
-        });
         $data
             ->addRule('text:min=1|required','uuid')           
-            ->validate();       
+            ->validate(true);      
+
+                      
+        $uuid = $data->get('uuid');
+
+        $model = Model::create($this->getModelClass(),$this->getExtensionName());
+        if (\is_object($model) == false) {
+            $this->error('errors.class');
+            return;
+        }
+        $model = $model->findById($uuid);
+
+        $result = (\is_object($model) == false) ? false : $model->softDelete();
+            
+        $this->setResponse($result,function() use($uuid) {              
+            $this
+                ->message($this->getSoftDeleteMessage())
+                ->field('uuid',$uuid);                  
+        },'errors.delete');
     }
 
     /**
@@ -79,25 +79,24 @@ trait SoftDelete
      */
     public function restoreController($request, $response, $data)
     {
-        $this->onDataValid(function($data) {                  
-            $uuid = $data->get('uuid');
-            $model = Model::create($this->getModelClass(),$this->getExtensionName());
-            if (\is_object($model) == false) {
-                $this->error('errors.class');
-                return;
-            }
-
-            $model = $model->findById($uuid);
-            $result = (\is_object($model) == false) ? false : $model->restore();
-            
-            $this->setResponse($result,function() use($uuid) {              
-                $this
-                    ->message($this->getRestoreMessage())
-                    ->field('uuid',$uuid);                  
-            },'errors.restore');
-        });
         $data
             ->addRule('text:min=2|required','uuid')           
-            ->validate();       
+            ->validate(true);     
+
+        $uuid = $data->get('uuid');
+        $model = Model::create($this->getModelClass(),$this->getExtensionName());
+        if (\is_object($model) == false) {
+            $this->error('errors.class');
+            return;
+        }
+
+        $model = $model->findById($uuid);
+        $result = (\is_object($model) == false) ? false : $model->restore();
+        
+        $this->setResponse($result,function() use($uuid) {              
+            $this
+                ->message($this->getRestoreMessage())
+                ->field('uuid',$uuid);                  
+        },'errors.restore');
     }
 }
