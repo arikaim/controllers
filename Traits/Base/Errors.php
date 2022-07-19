@@ -45,17 +45,19 @@ trait Errors
      * Set error, first find in messages array if not found display name value as error
      *
      * @param string $name
+     * @param string|null $default
      * @param array $params
      * @return Self
      */
-    public function error(string $name, array $params = [])
+    public function error(string $name, ?string $default = null, array $params = [])
     {
         $message = (\method_exists($this,'getMessage') == true) ? $this->getMessage($name) : null;
         if (empty($message) == true) {
             // check for system error
-            $message = $this->get('errors')->getError($name,$params,$name);           
+            $message = $this->get('errors')->getError($name,$params,$default);           
         }
-        $message = (empty($message) == true) ? $name : $message;        
+       
+        $message = (empty($message) == true) ? $default ?? $name : $message;        
         $this->setError($message);
 
         return $this;
