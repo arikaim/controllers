@@ -11,7 +11,7 @@ namespace Arikaim\Core\Controllers\Traits;
 
 use Arikaim\Core\Http\Url;
 use Arikaim\Core\Db\Model;
-use  Arikaim\Core\Access\Interfaces\AutoTokensInterface;
+use Arikaim\Core\Access\Interfaces\AutoTokensInterface;
 
 /**
  * AccessToken trait
