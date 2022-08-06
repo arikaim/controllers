@@ -143,7 +143,7 @@ trait Errors
     public function setError(string $errorMessage, bool $condition = true): void 
     {
         if ($condition !== false) {
-            \array_push($this->errors,$errorMessage);  
+            $this->errors[] = $errorMessage;  
         }               
     }
 
