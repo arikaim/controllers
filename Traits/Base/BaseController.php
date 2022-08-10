@@ -12,7 +12,6 @@ namespace Arikaim\Core\Controllers\Traits\Base;
 use Psr\Http\Message\ResponseInterface;
 
 use Arikaim\Core\Http\Url;
-use Arikaim\Core\Routes\Route;
 use Closure;
 
 /**
@@ -150,38 +149,6 @@ trait BaseController
             ->noCacheHeaders($response)      
             ->withHeader('Location',$url)
             ->withStatus(307);
-    }
-
-    /**
-     * Get page url
-     *
-     * @param string|null $routeName
-     * @param string|null $extension
-     * @param array $params
-     * @param boolean $relative
-     * @param string|null $language
-     * @param bool $relative
-     * @return string|false
-     */
-    public function getRouteUrl(
-        ?string $routeName,
-        ?string $extension, 
-        array $params = [], 
-        ?string $language = null, 
-        bool $relative = false
-    )
-    {
-        $route = $this->container->get('routes')->getRoutes([
-            'name'           => $routeName,
-            'extension_name' => $extension
-        ]);
-
-        if (isset($route[0]) == false) {
-            return false;
-        }
-        $urlPath = Route::getRouteUrl($route[0]['pattern'],$params);
-        
-        return Url::getUrl($urlPath,$relative,$language);
     }
 
     /**
