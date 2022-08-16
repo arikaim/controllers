@@ -14,6 +14,7 @@ use Arikaim\Core\Controllers\Traits\Base\Errors;
 use Arikaim\Core\Controllers\Traits\Base\Multilanguage;
 use Arikaim\Core\Controllers\Traits\Base\UserAccess;
 use Arikaim\Core\Controllers\Traits\Base\ApiResponse;
+use Exception;
 
 /**
  * Base class for all Api controllers
@@ -21,8 +22,8 @@ use Arikaim\Core\Controllers\Traits\Base\ApiResponse;
 class ApiController
 {    
     use 
-        BaseController,
         Multilanguage,
+        BaseController,
         UserAccess,
         ApiResponse,
         Errors;
@@ -59,6 +60,7 @@ class ApiController
      *
      * @param string $name
      * @param array $arguments
+     * @throws Exception
      * @return mixed
      */
     public function __call($name, $arguments)
@@ -70,6 +72,8 @@ class ApiController
 
             return $this->getResponse();
         }
+
+        throw new Exception('Route controller method not found.',1);
     }
 
     /**
