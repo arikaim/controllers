@@ -204,11 +204,13 @@ trait ApiResponse
      */
     public function getResponseJson(bool $raw = false): string
     {
+        $hasError = $this->hasError();
+
         $this->result = \array_merge($this->result,[
             'errors'          => $this->errors,
             'execution_time'  => (\microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'] ?? 0),
-            'status'          => ($this->hasError() == true) ? 'error' : 'ok',
-            'code'            => ($this->hasError() == true) ? 400 : 200           
+            'status'          => ($hasError == true) ? 'error' : 'ok',
+            'code'            => ($hasError == true) ? 400 : 200           
         ]);
 
         $result = ($raw == true) ? $this->result['result'] : $this->result;

@@ -11,6 +11,7 @@ namespace Arikaim\Core\Controllers;
 
 use Arikaim\Core\Controllers\Traits\Base\BaseController;
 use Arikaim\Core\Controllers\Traits\Base\ApiResponse;
+use Arikaim\Core\Controllers\Traits\Base\Errors;
 
 /**
  * BaseApiController class
@@ -19,12 +20,13 @@ class BaseApiController
 {    
     use 
         BaseController,
+        Errors,
         ApiResponse;     
 
     /**
      * Constructor
      *
-     * @param Container $container
+     * @param Container|null $container
      */
     public function __construct($container = null) 
     {
