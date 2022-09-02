@@ -11,12 +11,6 @@ namespace Arikaim\Core\Controllers;
 
 use Arikaim\Core\Controllers\ControlPanelApiInterface;
 use Arikaim\Core\Controllers\ApiController;
-
-use Arikaim\Core\Controllers\Traits\Base\BaseController;
-use Arikaim\Core\Controllers\Traits\Base\Errors;
-use Arikaim\Core\Controllers\Traits\Base\Multilanguage;
-use Arikaim\Core\Controllers\Traits\Base\UserAccess;
-use Arikaim\Core\Controllers\Traits\Base\ApiResponse;
 use Exception;
 
 /**
@@ -24,12 +18,18 @@ use Exception;
 */
 class ControlPanelApiController extends ApiController implements ControlPanelApiInterface
 {    
-    use 
-        BaseController,
-        Multilanguage,
-        UserAccess,
-        ApiResponse,
-        Errors;
+    /**
+     * Constructor
+     *
+     * @param Container $container
+     */
+    public function __construct($container = null) 
+    {
+        parent::__construct($container);
+        
+        $this->requireControlPanelPermission();
+    }
+
 
     /**
      * Rrun {method name}Controller function if exist

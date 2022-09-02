@@ -42,6 +42,20 @@ trait Errors
     }
 
     /**
+     * Get error
+     *
+     * @param string $errorCode
+     * @param array $params
+     * @return string|null
+     */
+    public function getError(string $errorCode, array $params = []): ?string
+    {
+        $error = $this->getMessage($errorCode);
+        
+        return (empty($error) == false) ? $error : $this->get('error')->getError($errorCode,$params);
+    }
+
+    /**
      * Set error, first find in messages array if not found display name value as error
      *
      * @param string $name
@@ -51,7 +65,7 @@ trait Errors
      */
     public function error(string $name, ?string $default = null, array $params = [])
     {
-        $message = (\method_exists($this,'getMessage') == true) ? $this->getMessage($name) : null;
+        $message = $this->getMessage($name);
         if (empty($message) == true) {
             // check for system error
             $message = $this->get('errors')->getError($name,$params,$default);           
@@ -71,7 +85,7 @@ trait Errors
     */
     public function addError(string $errorCode): void
     {
-        $message = (\method_exists($this,'getMessage') == true) ? $this->getMessage($errorCode) : null;
+        $message = $this->getMessage($errorCode);
         $message = (empty($message) == true) ? $errorCode : $message;
           
         $this->errors[] = $message;      

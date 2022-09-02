@@ -11,7 +11,6 @@ namespace Arikaim\Core\Controllers;
 
 use Arikaim\Core\Controllers\Traits\Base\BaseController;
 use Arikaim\Core\Controllers\Traits\Base\ApiResponse;
-use Arikaim\Core\Controllers\Traits\Base\Errors;
 
 /**
  * BaseApiController class
@@ -20,8 +19,14 @@ class BaseApiController
 {    
     use 
         BaseController,
-        Errors,
         ApiResponse;     
+
+    /**
+     * Errors list
+     *
+     * @var array
+     */
+    protected $errors = []; 
 
     /**
      * Constructor
@@ -43,5 +48,26 @@ class BaseApiController
     */
     public function init(): void
     {
+    }
+
+    /**
+     * Add error
+     *
+     * @param string $message
+     * @return void
+    */
+    public function addError(string $message): void
+    {
+        $this->errors[] = $message;    
+    }
+
+    /**
+     * Return true if response have error
+     *
+     * @return boolean
+     */
+    public function hasError(): bool 
+    {    
+        return (\count($this->errors) > 0);         
     }
 }

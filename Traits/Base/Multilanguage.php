@@ -42,6 +42,20 @@ trait Multilanguage
     protected $messagesLoaded = false;
 
     /**
+     * Add message to response, first find in messages array if not found display name value as message 
+     *
+     * @param string $name  
+     * @param string|null $default
+     * @return ApiController
+     */
+    public function message(string $name, ?string $default = null)
+    {
+        $this->result['result']['message'] = $this->getMessage($name) ?? $default ?? $name;
+      
+        return $this;
+    }
+
+    /**
      * Get message
      *
      * @param string $name
@@ -92,9 +106,9 @@ trait Multilanguage
         );
         $component->resolve([]);
         $messages = $component->getProperties();
-        $this->messagesLoaded = true;
         
         $this->messages = (empty($messages) == true) ? [] : $messages;    
+        $this->messagesLoaded = true;
     }
 
     /**

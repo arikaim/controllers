@@ -73,7 +73,7 @@ class ApiController
             return $this->getResponse();
         }
 
-        throw new Exception('Route controller method not found.',1);
+        throw new Exception('Route controller method not found. (' . $name . ')',1);
     }
 
     /**

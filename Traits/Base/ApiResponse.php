@@ -24,13 +24,6 @@ trait ApiResponse
     protected $result;
 
     /**
-     * pretty format json 
-     *
-     * @var bool
-     */
-    protected $prettyFormat = false;
-
-    /**
      * Return response 
      *  
      * @param boolean $raw
@@ -56,23 +49,6 @@ trait ApiResponse
     }    
     
     /**
-     * Add message to response, first find in messages array if not found display name value as message 
-     *
-     * @param string $name  
-     * @param string|null $default
-     * @return ApiController
-     */
-    public function message(string $name, ?string $default = null)
-    {
-        $message = (\method_exists($this,'getMessage') == true) ? $this->getMessage($name) : null;      
-        $message = $message ?? $default ?? $name;
-        
-        $this->field('message',$message);  
-        
-        return $this;
-    }
-
-    /**
      * Set result field 
      *
      * @param string $name
@@ -81,8 +57,7 @@ trait ApiResponse
      */
     public function field(string $name, $value)
     {
-        $this->setResultField($name,$value);
-
+        $this->result['result'][$name] = $value;
         return $this;
     }
 
@@ -96,17 +71,6 @@ trait ApiResponse
     public function fields(array $data, ?string $filedName = null)
     {
         $this->setResultFields($data,$filedName);
-        return $this;
-    }
-
-    /**
-     * Set json pretty format to true
-     *
-     * @return Self
-     */
-    public function useJsonPrettyformat()
-    {
-        $this->prettyFormat = true;
 
         return $this;
     }
@@ -214,9 +178,7 @@ trait ApiResponse
         ]);
 
         $result = ($raw == true) ? $this->result['result'] : $this->result;
-
-        return ($this->prettyFormat == true) ? 
-            \json_encode($result,JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : 
-            \json_encode($result,true);              
+        
+        return \json_encode($result,JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);         
     }    
 }

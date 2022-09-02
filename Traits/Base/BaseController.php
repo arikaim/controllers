@@ -361,20 +361,6 @@ trait BaseController
     }
 
     /**
-     * Get error
-     *
-     * @param string $errorCode
-     * @param array $params
-     * @return string|null
-     */
-    public function getError(string $errorCode, array $params = []): ?string
-    {
-        $error = (\method_exists($this,'getMessage') == true) ? $this->getMessage($errorCode) : null;
-        
-        return (empty($error) == false) ? $error : $this->get('error')->getError($errorCode,$params);
-    }
-
-    /**
      * Log error
      *
      * @param string $message
