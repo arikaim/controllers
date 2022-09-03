@@ -170,12 +170,10 @@ trait ApiResponse
     {
         $hasError = $this->hasError();
 
-        $this->result = \array_merge($this->result,[
-            'errors'          => $this->errors,
-            'execution_time'  => (\microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'] ?? 0),
-            'status'          => ($hasError == true) ? 'error' : 'ok',
-            'code'            => ($hasError == true) ? 400 : 200           
-        ]);
+        $this->result['errors'] = $this->errors;
+        $this->result['execution_time'] = (\microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'] ?? 0);
+        $this->result['status'] = ($hasError == true) ? 'error' : 'ok';
+        $this->result['code'] = ($hasError == true) ? 400 : 200;
 
         $result = ($raw == true) ? $this->result['result'] : $this->result;
         
