@@ -10,12 +10,15 @@
 namespace Arikaim\Core\Controllers\Traits;
 
 use Arikaim\Core\Db\Model;
+use Closure;
 
 /**
  * Set status trait
 */
 trait Status 
 {        
+
+
     /**
      * Get status changed message
      *
@@ -34,6 +37,17 @@ trait Status
     protected function getDefaultMessage(): string
     {
         return $this->setDefaultMessage ?? 'default';
+    }
+
+    /**
+     * Set status changed callback
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    public function onStatusChanged(Closure $callback): void
+    {
+        $this->onStatusChanged = $callback;
     }
 
     /**
@@ -63,15 +77,22 @@ trait Status
             $result = $model->update(['status' => $status]);
         } else {
             $model = $model->findById($uuid);
-            $result = (\is_object($model) == true) ? $model->setStatus($status) : false; 
+            $result = ($model == null) ? false : $model->setStatus($status); 
         }
         
-        $this->setResponse($result,function() use($uuid,$status) {              
-            $this
-                ->message($this->getStatusChangedMessage())
-                ->field('uuid',$uuid)
-                ->field('status',$status);
-        },'errors.status');
+        if ($result === false) {
+            $this->error('errors.status','Error save status');
+            return false;
+        }
+            
+        if (($this->onStatusChanged ?? null) instanceof Closure) {
+            ($this->onStatusChanged)($status);  
+        }  
+
+        $this
+            ->message($this->getStatusChangedMessage())
+            ->field('uuid',$uuid)
+            ->field('status',$status);
     }
 
     /**
