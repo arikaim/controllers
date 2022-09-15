@@ -86,7 +86,7 @@ trait Status
         }
             
         if (($this->onStatusChanged ?? null) instanceof Closure) {
-            ($this->onStatusChanged)($status);  
+            ($this->onStatusChanged)($status,$model);  
         }  
 
         $this
