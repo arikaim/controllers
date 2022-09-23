@@ -41,11 +41,29 @@ trait UserAccess
      * @return void
      * @throws AccessDeniedException
      */
-    public function requireUser($userId)
+    public function requireUser($userId): void
     {     
-        if (empty($userId) == true || $this->getUserId() != $userId) {
+        if ((empty($userId) == true) || ($this->getUserId() != $userId)) {
             throw new AccessDeniedException('Access Denied');   
         }
+    }
+
+    /**
+     * Check logged user id or contorl panel
+     *
+     * @param string|int $userId
+     * @return void
+     * @throws AccessDeniedException
+     */
+    public function requireUserOrControlPanel($userId): void
+    {
+        // check for control panel access
+        if ($this->hasControlPanelAccess() == true) {
+            return;
+        }
+
+        // check for user
+        $this->requireUser($userId);
     }
 
     /**
