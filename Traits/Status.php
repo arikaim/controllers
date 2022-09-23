@@ -60,15 +60,28 @@ trait Status
      */
     public function setStatusController($request, $response, $data)
     {
-        $data
-            ->addRule('checkList:items=0,1,2,3,4,5,6,7,8,9,10,toggle','status')
-            ->validate(true); 
-
         $model = Model::create($this->getModelClass(),$this->getExtensionName());
         if ($model == null) {
             $this->error('Not vlaid model.');
             return false;
         }
+        
+        $this->setModelStatus($data,$model);
+    }
+
+    /**
+     * Set status
+     *
+     * @param Validator $data
+     * @param object $model
+     * @return void|bool
+    */
+    public function setModelStatus(object $data, object $model)
+    {
+        $data
+            ->addRule('checkList:items=0,1,2,3,4,5,6,7,8,9,10,toggle','status')
+            ->validate(true); 
+
         $status = $data->get('status',1);                
         $uuid = $data->get('uuid');
         
