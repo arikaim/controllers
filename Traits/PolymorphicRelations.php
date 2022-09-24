@@ -67,6 +67,7 @@ trait PolymorphicRelations
     {
         $data->validate(true);
 
+        $uuid = $data->get('uuid');
         $id = $data->get('id');
         $type = $data->get('type');
         $relationId = $data->get('relation_id');
@@ -78,9 +79,9 @@ trait PolymorphicRelations
         }
  
         if (empty($type) == false && empty($relationId) == false) {
-            $result = $model->deleteRelations($data['id'],$data['type'],$data['relation_id']);
+            $result = $model->deleteRelations($id,$type,$relationId);
         } else {
-            $result = $model->deleteRelation($data['uuid']);
+            $result = $model->deleteRelation($uuid);
         }
         
         $this->setResponse($result,'relations.delete','errors.relations.delete');
