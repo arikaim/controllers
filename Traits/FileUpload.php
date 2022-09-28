@@ -10,6 +10,7 @@
 namespace Arikaim\Core\Controllers\Traits;
 
 use Arikaim\Core\Utils\Path;
+use Arikaim\Core\Utils\File;
 
 /**
  * File upload trait
@@ -85,7 +86,8 @@ trait FileUpload
     
         $result = [];
         foreach ($uploadedFiles as $file) {
-            $destinationFileName = (empty($destinationFileName) == true) ? $file->getClientFilename() : $destinationFileName;
+            $clientFileName = $file->getClientFilename();
+            $destinationFileName = (empty($destinationFileName) == true) ? $clientFileName : File::replaceFileName($clientFileName,$destinationFileName);
 
             if ($file->getError() === UPLOAD_ERR_OK) {                   
                 $fileName = $destinationPath . $destinationFileName;   
