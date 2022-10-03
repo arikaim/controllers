@@ -18,6 +18,13 @@ use Closure;
 trait Crud 
 {        
     /**
+     * Before read
+     *
+     * @var Closure|null
+     */
+    protected $beforeReadCallback = null;
+
+    /**
      * Before update
      *
      * @var Closure|null
@@ -30,6 +37,24 @@ trait Crud
      * @var Closure|null
      */
     protected $beforeCreateCallback = null;
+
+    /**
+     * Before delete
+     *
+     * @var Closure|null
+     */
+    protected $beforeDeleteCallback = null;
+
+    /**
+     * Set before read
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    protected function onBeforeRead(Closure $callback): void
+    {
+        $this->beforeReadCallback = $callback;
+    }
 
     /**
      * Set before update
@@ -54,15 +79,26 @@ trait Crud
     }
 
     /**
+     * Set before delete
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    protected function onBeforeDelete(Closure $callback): void
+    {
+        $this->beforeDeleteCallback = $callback;
+    }
+
+    /**
      * Resolve callback
      *
      * @param mixed $data
      * @param Closure|null $callback
      * @return mixed
      */
-    private function resolveCallback($data, ?Closure $callback)
+    private function resolveCallback($data, ?Closure $callback, ?object $model = null)
     {
-        return (\is_callable($callback) == true) ? $callback($data) : $data;         
+        return (\is_callable($callback) == true) ? $callback($data,$model) : $data;         
     }
 
     /**
@@ -152,7 +188,7 @@ trait Crud
      * @param int $excludeId
      * @return bool
      */
-    protected function checkColumn($model, $data, $excludeId = null)
+    protected function checkColumn($model, $data, $excludeId = null): bool
     {
         $columns = $this->getUniqueColumns();
 
@@ -160,7 +196,7 @@ trait Crud
             $value = $data->get($column);
             if (empty($value) == false) {
                 $found = $model->where($column,'=',$value)->first();
-                if (\is_object($found) == true) {
+                if ($found !== null) {
                     if (empty($excludeId) == true) {
                         return false;
                     } elseif ($found->id != $excludeId) {
@@ -181,22 +217,24 @@ trait Crud
      * @param Validator $data
      * @return Psr\Http\Message\ResponseInterface
      */
-    public function readController($request, $response, $data)
+    public function read($request, $response, $data)
     {
-        $this->requireControlPanelPermission();
-
         $data
             ->addRule('text:min=1|required','uuid')           
             ->validate(true); 
         
         $uuid = $data->get('uuid');
-        $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-                    
-        $this->setResponse(\is_object($model),function() use($model) {              
-            $this
-                ->message($this->getReadMessage())
-                ->setResultFields($model->toArray());                  
-        },'errors.' . $this->getReadMessage());
+        $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);            
+        if ($model == null) {
+            $this->error('errors.' . $this->getReadMessage(),'Error read model');
+            return;
+        }
+            
+        $data = $this->resolveCallback($data,$this->beforeReadCallback,$model);
+
+        $this
+            ->message($this->getReadMessage())
+            ->setResultFields($model->toArray());                        
     }
 
     /**
@@ -207,32 +245,37 @@ trait Crud
      * @param Validator $data
      * @return Psr\Http\Message\ResponseInterface
      */
-    public function updateController($request, $response, $data)
+    public function update($request, $response, $data)
     {
-        $this->requireControlPanelPermission();
-
         $data
             ->addRule('text:min=1|required','uuid')           
             ->validate(true);    
  
         $uuid = $data->get('uuid');
         $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-        
-        $result = false;
-        if (\is_object($model) == true) {
-            $result = $this->checkColumn($model,$data,$model->id);
-            if ($result == true) {
-                $data = $this->applyDefaultValues($data);                  
-                $data = $this->resolveCallback($data,$this->beforeUpdateCallback);
-                $result = (bool)$model->update($data->toArray());
-            }
+        if ($model == null) {
+            $this->error('errors.id','Not valid model');
+            return;
         }
-                    
-        $this->setResponse($result,function() use($uuid) {              
-            $this
-                ->message($this->getUpdateMessage())
-                ->field('uuid',$uuid);                  
-        },'errors.' . $this->getUpdateMessage());   
+
+        $result = $this->checkColumn($model,$data,$model->id);
+        if ($result == false) {
+            $this->error('errors.' . $this->getUpdateMessage(),'Error update');
+            return;
+        }   
+
+        $data = $this->applyDefaultValues($data);                  
+        $data = $this->resolveCallback($data,$this->beforeUpdateCallback,$model);
+
+        $result = (bool)$model->update($data->toArray());
+        if ($result == false) {
+            $this->error('errors.' . $this->getUpdateMessage(),'Error update');
+            return;
+        } 
+
+        $this
+            ->message($this->getUpdateMessage())
+            ->field('uuid',$uuid);                          
     }
 
     /**
@@ -243,30 +286,35 @@ trait Crud
      * @param Validator $data
      * @return Psr\Http\Message\ResponseInterface
      */
-    public function createController($request, $response, $data)
+    public function create($request, $response, $data)
     {
-        $this->requireControlPanelPermission();
-
         $data                  
             ->validate(true);    
 
         $model = Model::create($this->getModelClass(),$this->getExtensionName());
-        
-        $createdModel = null;
-        if (\is_object($model) == true) {
-            $result = $this->checkColumn($model,$data);
-            if ($result == true) {
-                $data = $this->applyDefaultValues($data);
-                $data = $this->resolveCallback($data,$this->beforeCreateCallback);
-                $createdModel = $model->create($data->toArray());
-            }
+        if ($model == null) {
+            $this->error('errors.id','Not valid model');
+            return;
         }
-                    
-        $this->setResponse(\is_object($createdModel),function() use($createdModel) {              
-            $this
-                ->message($this->getCreateMessage())
-                ->field('uuid',$createdModel->uuid);                  
-        },'errors.' . $this->getCreateMessage());
+
+        $result = $this->checkColumn($model,$data);
+        if ($result == false) {
+            $this->error('errors.' . $this->getUpdateMessage(),'Error update');
+            return;
+        }   
+
+        $data = $this->applyDefaultValues($data);
+        $data = $this->resolveCallback($data,$this->beforeCreateCallback,$model);
+
+        $createdModel = $model->create($data->toArray());
+        if ($createdModel == null) {
+            $this->error('errors.' . $this->getCreateMessage(),'Error create');
+            return;
+        } 
+      
+        $this
+            ->message($this->getCreateMessage())
+            ->field('uuid',$createdModel->uuid);                          
     }
 
     /**
@@ -279,20 +327,27 @@ trait Crud
      */
     public function deleteController($request, $response, $data)
     {
-        $this->requireControlPanelPermission();
-
         $data
             ->addRule('text:min=1|required','uuid')           
             ->validate(true);  
 
         $uuid = $data->get('uuid');
         $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-        $result = (\is_object($model) == false) ? false : (bool)$model->delete();
+        if ($model == null) {
+            $this->error('errors.id','Not valid model');
+            return;
+        }
+
+        $data = $this->resolveCallback($data,$this->beforeDeleteCallback,$model);
+        $result = (bool)$model->delete();
             
-        $this->setResponse($result,function() use($uuid) {              
-            $this
-                ->message($this->getDeleteMessage())
-                ->field('uuid',$uuid);                  
-        },'errors.' . $this->getDeleteMessage());
+        if ($result === false) {
+            $this->error('errors.' . $this->getDeleteMessage(),'Error delete');
+            return;
+        }
+             
+        $this
+            ->message($this->getDeleteMessage())
+            ->field('uuid',$uuid);                          
     }
 }

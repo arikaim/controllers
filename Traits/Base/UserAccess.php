@@ -92,6 +92,7 @@ trait UserAccess
     /**
      * Require control panel permission
      *  
+     * @throws AccessDeniedException
      * @return void
      */
     public function requireControlPanelPermission(): void
