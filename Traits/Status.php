@@ -17,8 +17,6 @@ use Closure;
 */
 trait Status 
 {        
-
-
     /**
      * Get status changed message
      *
@@ -121,20 +119,25 @@ trait Status
         $data->validate(true); 
      
         $uuid = $data->get('uuid');
+        $keyValue = $data->get('key_value',null);
+        $keyValue = (empty($keyValue) == true) ? null : $keyValue;
+
         $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-        if (\is_object($model) == false) {
-            $this->error('errors.default');
-            return;
+        if ($model == null) {
+            $this->error('errors.id','Not vlaid model id');
+            return false;
         }
 
-        $result = $model->setDefault($uuid);
+        $result = $model->setDefault($uuid,$keyValue);
     
-        $this->setResponse($result,function() use($uuid) {              
-            $this
-                ->message($this->getDefaultMessage())
-                ->field('uuid',$uuid);
-                
-        },'errors.default');
+        if ($result === false) {
+            $this->error('errors.default','Error set default');
+            return false;
+        }
+
+        $this
+            ->message($this->getDefaultMessage())
+            ->field('uuid',$uuid);
     }
 
     /**
@@ -152,8 +155,7 @@ trait Status
         $uuid = $data->get('uuid');
         $userId = $data->get('user_id',$this->getUserId());            
         $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);
-        
-        if (\is_object($model) == false) {
+        if ($model == null) {
             $this->error('errors.class');
             return;
         }
