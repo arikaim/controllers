@@ -32,11 +32,25 @@ trait Crud
     protected $beforeUpdateCallback = null;
 
     /**
-     * Before crate
+     * After update
+     *
+     * @var Closure|null
+     */
+    protected $afterUpdateCallback = null;
+
+    /**
+     * Before create
      *
      * @var Closure|null
      */
     protected $beforeCreateCallback = null;
+
+    /**
+     * After create
+     *
+     * @var Closure|null
+     */
+    protected $afterCreateCallback = null;
 
     /**
      * Before delete
@@ -44,6 +58,13 @@ trait Crud
      * @var Closure|null
      */
     protected $beforeDeleteCallback = null;
+
+    /**
+     * After delete
+     *
+     * @var Closure|null
+     */
+    protected $afterDeleteCallback = null;
 
     /**
      * Set before read
@@ -68,6 +89,17 @@ trait Crud
     }
 
     /**
+     * Set after update
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    protected function onAfterUpdate(Closure $callback): void
+    {
+        $this->afterUpdateCallback = $callback;
+    }
+
+    /**
      * Set before create
      *
      * @param Closure $callback
@@ -79,6 +111,17 @@ trait Crud
     }
 
     /**
+     * Set after create
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    protected function onAfterCreate(Closure $callback): void
+    {
+        $this->afterCreateCallback = $callback;
+    }
+
+    /**
      * Set before delete
      *
      * @param Closure $callback
@@ -87,6 +130,17 @@ trait Crud
     protected function onBeforeDelete(Closure $callback): void
     {
         $this->beforeDeleteCallback = $callback;
+    }
+
+    /**
+     * Set after delete
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    protected function onAfterDelete(Closure $callback): void
+    {
+        $this->afterDeleteCallback = $callback;
     }
 
     /**
@@ -264,7 +318,8 @@ trait Crud
             return;
         }   
 
-        $data = $this->applyDefaultValues($data);                  
+        $data = $this->applyDefaultValues($data);  
+        // before update            
         $data = $this->resolveCallback($data,$this->beforeUpdateCallback,$model);
 
         $result = (bool)$model->update($data->toArray());
@@ -272,6 +327,8 @@ trait Crud
             $this->error('errors.' . $this->getUpdateMessage(),'Error update');
             return;
         } 
+        // after update
+        $data = $this->resolveCallback($data,$this->afterUpdateCallback,$model);
 
         $this
             ->message($this->getUpdateMessage())
@@ -304,6 +361,7 @@ trait Crud
         }   
 
         $data = $this->applyDefaultValues($data);
+        // before create
         $data = $this->resolveCallback($data,$this->beforeCreateCallback,$model);
 
         $createdModel = $model->create($data->toArray());
@@ -311,7 +369,10 @@ trait Crud
             $this->error('errors.' . $this->getCreateMessage(),'Error create');
             return;
         } 
-      
+
+        // after create
+        $data = $this->resolveCallback($data,$this->afterCreateCallback,$createdModel);
+
         $this
             ->message($this->getCreateMessage())
             ->field('uuid',$createdModel->uuid);                          
@@ -337,7 +398,7 @@ trait Crud
             $this->error('errors.id','Not valid model');
             return;
         }
-
+        // before delete
         $data = $this->resolveCallback($data,$this->beforeDeleteCallback,$model);
         $result = (bool)$model->delete();
             
@@ -345,7 +406,10 @@ trait Crud
             $this->error('errors.' . $this->getDeleteMessage(),'Error delete');
             return;
         }
-             
+        
+        // after delete
+        $data = $this->resolveCallback($data,$this->afterDeleteCallback,$model);
+
         $this
             ->message($this->getDeleteMessage())
             ->field('uuid',$uuid);                          
