@@ -11,12 +11,49 @@ namespace Arikaim\Core\Controllers\Traits;
 
 use Arikaim\Core\Utils\Path;
 use Arikaim\Core\Utils\File;
+use Closure;
 
 /**
  * File upload trait
 */
 trait FileUpload 
 {        
+    /**
+     * Before upload
+     *
+     * @var Closure|null
+     */
+    protected $beforeUploadCallback = null;
+
+    /**
+     * After upload
+     *
+     * @var Closure|null
+     */
+    protected $afterUploadCallback = null;
+
+    /**
+     * Set before upload
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    protected function onBeforeUpload(Closure $callback): void
+    {
+        $this->beforeUploadCallback = $callback;
+    }
+
+    /**
+     * Set after upload
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    protected function onAfterUpload(Closure $callback): void
+    {
+        $this->afterUploadCallback = $callback;
+    }
+
     /**
      * Get file upload message name
      *
@@ -46,19 +83,20 @@ trait FileUpload
      * @return Psr\Http\Message\ResponseInterface
      */
     public function uploadController($request, $response, $data)
-    {
-        $this->requireControlPanelPermission();
-        
+    { 
         $data->validate(true);      
-       
+        // before upload
+        $data = $this->resolveCallback($data,$this->beforeUploadCallback);
+
         $destinationPath = $data->get('path','');
         $files = $this->uploadFiles($request,$destinationPath);
-            
-        $this->setResponse(\is_array($files),function() use($files) {                  
-            $this
-                ->message($this->getFileUploadMessage())
-                ->field('files',$files);                                  
-        },'errors.upload');           
+        
+        // after upload
+        $data = $this->resolveCallback($data,$this->afterUploadCallback);
+
+        $this
+            ->message($this->getFileUploadMessage())
+            ->field('files',$files);                                           
     }
 
     /**
@@ -107,5 +145,17 @@ trait FileUpload
         }
 
         return $result;
+    }
+
+    /**
+     * Resolve callback
+     *
+     * @param mixed $data
+     * @param Closure|null $callback
+     * @return mixed
+     */
+    private function resolveCallback($data, ?Closure $callback)
+    {
+        return (\is_callable($callback) == true) ? $callback($data) : $data;         
     }
 }
