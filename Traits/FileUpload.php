@@ -86,13 +86,13 @@ trait FileUpload
     { 
         $data->validate(true);      
         // before upload
-        $data = $this->resolveCallback($data,$this->beforeUploadCallback);
+        $data = $this->resolveFileUploadCallback($data,$this->beforeUploadCallback);
 
         $destinationPath = $data->get('path','');
         $files = $this->uploadFiles($request,$destinationPath);
         
         // after upload
-        $data = $this->resolveCallback($data,$this->afterUploadCallback);
+        $data = $this->resolveFileUploadCallback($data,$this->afterUploadCallback);
 
         $this
             ->message($this->getFileUploadMessage())
@@ -154,7 +154,7 @@ trait FileUpload
      * @param Closure|null $callback
      * @return mixed
      */
-    private function resolveCallback($data, ?Closure $callback)
+    private function resolveFileUploadCallback($data, ?Closure $callback)
     {
         return (\is_callable($callback) == true) ? $callback($data) : $data;         
     }
