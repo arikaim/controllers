@@ -258,6 +258,18 @@ trait BaseController
     }
 
     /**
+     * Run closure with serice
+     *
+     * @param string $name
+     * @param Closure $callback
+     * @return mixed
+     */
+    public function withService(string $name, Closure $callback)
+    {
+        return $this->container->get('service')->with($name,$callback);
+    }
+
+    /**
      * Return true if container item esist
      *
      * @param string $id
