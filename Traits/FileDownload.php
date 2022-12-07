@@ -9,7 +9,7 @@
 */
 namespace Arikaim\Core\Controllers\Traits;
 
-use GuzzleHttp\Psr7;
+use Nyholm\Psr7\Stream;
 use Psr\Http\Message\StreamInterface;
 
 use Arikaim\Core\Utils\File;
@@ -29,7 +29,7 @@ trait FileDownload
      */
     public function downloadFileHeaders($response, $fileName, $stream)
     {
-        $stream = ($stream instanceof StreamInterface) ? $stream : Psr7\stream_for($stream);
+        $stream = ($stream instanceof StreamInterface) ? $stream : Stream::create($stream);
 
         return $response
             ->withoutHeader('Cache-Control')
@@ -74,7 +74,7 @@ trait FileDownload
      */
     public function viewImageHeaders($response, string $type, $stream)
     {
-        $stream = ($stream instanceof StreamInterface) ? $stream : Psr7\stream_for($stream);
+        $stream = ($stream instanceof StreamInterface) ? $stream : Stream::create($stream);
 
         return $response        
             ->withHeader('Content-Type',$type)                          
