@@ -321,7 +321,7 @@ trait BaseController
      */
     public function getRequestParams($request): array
     {
-        $params = \explode('/',$request->getAttribute('params'));
+        $params = \explode('/',$request->getAttribute('params') ?? '');
        
         return \array_merge(\array_filter($params),$request->getQueryParams());       
     }
