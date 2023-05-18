@@ -99,7 +99,7 @@ trait EntityPermissions
        
         $users = Model::Users();                    
         $entityId = $data->get('entity');
-        $user = \trim($data->get('user',null));
+        $user = \trim($data->get('user',''));
         $user = (empty($user) == true) ? $this->getUserId() : $user;
         
         $group = $data->get('group',null);

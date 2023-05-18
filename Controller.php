@@ -98,7 +98,7 @@ class Controller
         } 
         // get current page language
         if (empty($language) == true) {   
-            $language = $this->getPageLanguage($data);              
+            $language = $this->getPageLanguage($data,true);              
         }
 
         // set current language

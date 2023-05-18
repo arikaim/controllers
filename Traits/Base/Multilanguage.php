@@ -115,9 +115,10 @@ trait Multilanguage
      * Get page language
      *
      * @param array $data
+     * @param bool $skipSession
      * @return string
     */
-    public function getPageLanguage($data = []): string
+    public function getPageLanguage($data = [], bool $skipSession = false): string
     {     
         $language = $data['language'] ?? '';
         if (empty($language) == false) {
@@ -128,9 +129,12 @@ trait Multilanguage
         if (empty($language) == false) {
             return $language;
         } 
-        $language = Session::get('language',null);
-
-        return $language ?? $this->getDefaultLanguage();           
+       
+        if ($skipSession == false) {
+            $language = Session::get('language',null);
+        }
+       
+        return (empty($language) == true) ? $this->getDefaultLanguage() : $language;           
     }
 
     /**
