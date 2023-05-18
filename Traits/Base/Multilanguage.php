@@ -125,7 +125,7 @@ trait Multilanguage
             return $language;
         }
         
-        $language = Cookie::get('language',null);     
+        $language = Cookie::get('language',null);      
         if (empty($language) == false) {
             return $language;
         } 
