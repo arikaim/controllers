@@ -78,18 +78,26 @@ class Controller
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
-     * @param CollectionInterface $data   
-     * @param string|array|null $pageName     
+     * @param CollectionInterface|array $data   
+     * @param string|null $pageName     
      * @param boolean $resolveParams 
      * @param string|null $language
+     * @param bool $dispatchEvent
      * @return \Psr\Http\Message\ResponseInterface
     */
-    public function pageLoad($request, $response, $data, $pageName = null, ?string $language = null)
+    public function pageLoad(
+        $request, 
+        $response, 
+        $data, 
+        ?string $pageName = null, 
+        ?string $language = null, 
+        bool $dispatchEvent = false
+    )
     {       
         $this->resolveRouteParams($request);                        
        
         $data = (\is_object($data) == true) ? $data->toArray() : $data;
-        if (empty($pageName) == true || \is_array($pageName) == true) {
+        if (empty($pageName) == true) {
             $pageName = $data['page_name'] ?? $this->pageName;
         }
 
@@ -111,6 +119,13 @@ class Controller
         $component = $this->get('page')->render($pageName,$data,$language);
         $response->getBody()->write($component->getHtmlCode());
 
+        if ($dispatchEvent === true) {
+            $this->container->get('event')->dispatch('core.page.load',[
+                'page_name' => $pageName,
+                'language'  => $language
+            ]);
+        }
+       
         return $response;
     }
 
