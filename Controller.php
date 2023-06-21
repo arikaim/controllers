@@ -121,8 +121,10 @@ class Controller
 
         if ($dispatchEvent === true) {
             $this->container->get('event')->dispatch('core.page.load',[
-                'page_name' => $pageName,
-                'language'  => $language
+                'page_name'    => $pageName,
+                'language'     => $language,
+                'query_params' => $request->getQueryParams(),
+                'data'         => $data
             ]);
         }
        
