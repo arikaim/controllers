@@ -38,6 +38,17 @@ trait Status
     }
 
     /**
+     * Set before status changed
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    protected function onBeforeStatusUpdate(Closure $callback): void
+    {
+        $this->onBeforeStatusUpdate = $callback;
+    }
+
+    /**
      * Set status changed callback
      *
      * @param Closure $callback
