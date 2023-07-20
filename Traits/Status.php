@@ -94,6 +94,11 @@ trait Status
         $status = $data->get('status',1);                
         $uuid = $data->get('uuid');
         
+        // before update callback
+        if (($this->onBeforeStatusUpdate ?? null) instanceof Closure) {
+            ($this->onBeforeStatusUpdate)($status,$model);  
+        } 
+
         if (\is_array($uuid) == true) {
             $model = $model->findMultiple($uuid);
             $result = $model->update(['status' => $status]);
