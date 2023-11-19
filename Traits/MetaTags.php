@@ -34,25 +34,35 @@ trait MetaTags
      * @param Validator $data
      * @return Psr\Http\Message\ResponseInterface
     */
-    public function updateMetaTagsController($request, $response, $data) 
+    public function updateMetaTags($request, $response, $data) 
     {
-        $data->validate(true); 
+        $data
+            ->validate(true); 
       
         $uuid = $data->get('uuid');   
-        $language = $this->getPageLanguage($data);     
+        $metaTitle = $data->get('meta_title');
+        $metaDescription = $data->get('meta_description');   
+        $metaKeywords = $data->get('meta_keywords');  
+
         $model = Model::create($this->getModelClass(),$this->getExtensionName())->findById($uuid);             
-        if (\is_object($model) == false) {
-            $this->error('errors.id');
+        if ($model == null) {
+            $this->error('errors.id','Not valid modell id');
             return;
         }
     
-        $info = $data->slice(['meta_title','meta_description','meta_keywords']);
-        $translationModel = $model->saveTranslation($info,$language); 
+        $result = $model->update([
+            'meta_title'       => $metaTitle,
+            'meta_description' => $metaDescription,
+            'meta_keywords'    => $metaKeywords
+        ]); 
         
-        $this->setResponse(\is_object($translationModel),function() use($translationModel) {               
-            $this
-                ->message($this->getUpdateMetaTagsMessage())
-                ->field('uuid',$translationModel->uuid);   
-        },'errors.metatags'); 
+        if ($result === false) {
+            $this->error('errors.metatags','Error save metatags');
+            return;
+        }
+                  
+        $this
+            ->message($this->getUpdateMetaTagsMessage())
+            ->field('uuid',$model->uuid);   
     }
 }
