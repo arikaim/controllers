@@ -11,7 +11,7 @@ namespace Arikaim\Core\Controllers\Traits;
 
 use Arikaim\Core\Http\Url;
 use Arikaim\Core\Db\Model;
-use Arikaim\Core\Access\Interfaces\AutoTokensInterface;
+use Arikaim\Core\Access\Interfaces\AuthTokensInterface;
 
 /**
  * AccessToken trait
@@ -28,7 +28,7 @@ trait AccessToken
     public function createProtectedUrl(int $userId, string $pattern)
     {
         // page acess token
-        $accessToken = Model::AccessTokens()->createToken($userId,AutoTokensInterface::PAGE_ACCESS_TOKEN,1800);
+        $accessToken = Model::AccessTokens()->createToken($userId,AuthTokensInterface::PAGE_ACCESS_TOKEN,1800);
 
         return (\is_array($accessToken) == true) ? Url::BASE_URL . '/' . $pattern . '/' . $accessToken['token'] : false;
     }

@@ -67,7 +67,7 @@ trait Status
      * @param Validator $data
      * @return Psr\Http\Message\ResponseInterface
      */
-    public function setStatusController($request, $response, $data)
+    public function setStatus($request, $response, $data)
     {
         $model = Model::create($this->getModelClass(),$this->getExtensionName());
         if ($model == null) {
@@ -75,6 +75,11 @@ trait Status
             return false;
         }
         
+        if (empty($model->user_id ?? null) == false) {
+            // check access
+            $this->requireUserOrControlPanel($model->user_id);
+        }
+
         $this->setModelStatus($data,$model);
     }
 

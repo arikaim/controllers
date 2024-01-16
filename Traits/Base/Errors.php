@@ -19,9 +19,9 @@ trait Errors
     /**
      * Validation error messages
      *
-     * @var array|null
+     * @var array
      */
-    protected $validationErrorMessages = null;
+    protected $validationErrorMessages = [];
 
     /**
      * Errors list
@@ -45,32 +45,25 @@ trait Errors
      * Get error
      *
      * @param string $errorCode
-     * @param array $params
-     * @return string|null
+     * @return string
      */
-    public function getError(string $errorCode, array $params = []): ?string
+    public function getError(string $errorCode): string
     {
         $error = $this->getMessage($errorCode);
         
-        return (empty($error) == false) ? $error : $this->get('error')->getError($errorCode,$params);
+        return (empty($error) == false) ? $error : $errorCode;
     }
 
     /**
      * Set error, first find in messages array if not found display name value as error
      *
      * @param string $name
-     * @param string|null $default
-     * @param array $params
+     * @param string|null $default    
      * @return Self
      */
-    public function error(string $name, ?string $default = null, array $params = [])
+    public function error(string $name, ?string $default = null)
     {
         $message = $this->getMessage($name);
-        if (empty($message) == true) {
-            // check for system error
-            $message = $this->get('errors')->getError($name,$params,$default);           
-        }
-       
         $message = (empty($message) == true) ? $default ?? $name : $message;        
         $this->setError($message);
 
@@ -99,7 +92,7 @@ trait Errors
      */
     protected function getValidationErrorMessage($code): ?string
     {
-        return (isset($this->validationErrorMessages[$code]) == true) ? $this->validationErrorMessages[$code]['message'] : null;
+        return $this->validationErrorMessages[$code]['message'] ?? null;
     }
 
     /**
@@ -172,21 +165,6 @@ trait Errors
     }
 
     /**
-     * Load validation error messages
-     *
-     * @return void
-     */
-    public function loadValidationErrors(): void
-    {
-        if (empty($this->validationErrorMessages) == true) {
-            $systemValidationErrors = $this->get('errors')->loadValidationErrors();
-            $errors = $this->messages['errors']['validation'] ?? [];
-
-            $this->validationErrorMessages = \array_merge($systemValidationErrors,$errors);
-        }
-    }
-
-    /**
      * Resolve validation errors
      *
      * @param array $errors
@@ -195,7 +173,11 @@ trait Errors
     protected function resolveValidationErrors(array $errors): array
     {
         $result = [];
-        $this->loadValidationErrors();
+    
+        $this->validationErrorMessages = \array_merge(
+            $this->get('errors')->loadValidationErrors(),
+            $this->messages['errors']['validation'] ?? []
+        );
 
         foreach ($errors as $item) {
             $message = $this->getValidationErrorMessage($item['error_code']);
