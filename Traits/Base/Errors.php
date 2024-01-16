@@ -10,6 +10,7 @@
 namespace Arikaim\Core\Controllers\Traits\Base;
 
 use Arikaim\Core\Utils\Text;
+use Arikaim\Core\Utils\File;
 
 /**
  * Errors trait
@@ -174,8 +175,11 @@ trait Errors
     {
         $result = [];
     
+        $data = File::readJsonFile(Path::CONFIG_PATH . 'validation-errors.json');
+        $validationErrors = ($data === false) ? [] : $data;
+
         $this->validationErrorMessages = \array_merge(
-            $this->get('errors')->loadValidationErrors(),
+            $validationErrors,
             $this->messages['errors']['validation'] ?? []
         );
 

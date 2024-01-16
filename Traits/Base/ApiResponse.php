@@ -40,9 +40,8 @@ trait ApiResponse
         $response->getBody()->write($json);
 
         // closure remove
-        unset($this->dataErrorCallback);
-        unset($this->dataValidCallback);
-
+        unset($this->dataErrorCallback,$this->dataValidCallback);
+    
         return $response
             ->withStatus($this->result['code'])
             ->withHeader('Content-Type','application/json');      
