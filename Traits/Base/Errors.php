@@ -11,6 +11,8 @@ namespace Arikaim\Core\Controllers\Traits\Base;
 
 use Arikaim\Core\Utils\Text;
 use Arikaim\Core\Utils\File;
+use Arikaim\Core\Utils\Path;
+
 
 /**
  * Errors trait
