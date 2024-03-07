@@ -9,7 +9,7 @@
 */
 namespace Arikaim\Core\Controllers\Traits\Base;
 
-use Arikaim\Core\Access\AccessDeniedException;
+use Arikaim\Core\Framework\HttpException;
 
 /**
  * UserAccess trait
@@ -23,7 +23,7 @@ trait UserAccess
      * @param mixed $type   
      * @param string|integer|null $authId  For current user  - null
      * @return void
-     * @throws AccessDeniedException
+     * @throws HttpException
      */
     public function requireAccess(string $name, $type = null, $authId = null): void
     {       
@@ -31,7 +31,8 @@ trait UserAccess
             return;
         }
 
-        throw new AccessDeniedException('Access Denied');     
+        // unautorized
+        throw new HttpException(401);     
     }
 
     /**
@@ -39,12 +40,13 @@ trait UserAccess
      *
      * @param string|int $userId
      * @return void
-     * @throws AccessDeniedException
+     * @throws HttpException
      */
     public function requireUser($userId): void
     {     
         if ((empty($userId) == true) || ($this->getUserId() != $userId)) {
-            throw new AccessDeniedException('Access Denied');   
+            // unautorized
+            throw new HttpException(401);   
         }
     }
 
@@ -53,7 +55,7 @@ trait UserAccess
      *
      * @param string|int $userId
      * @return void
-     * @throws AccessDeniedException
+     * @throws HttpException
      */
     public function requireUserOrControlPanel($userId): void
     {
@@ -92,7 +94,7 @@ trait UserAccess
     /**
      * Require control panel permission
      *  
-     * @throws AccessDeniedException
+     * @throws HttpException
      * @return void
      */
     public function requireControlPanelPermission(): void

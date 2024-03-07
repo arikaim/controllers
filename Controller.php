@@ -104,14 +104,14 @@ class Controller
         if (empty($pageName) == true) {
             return $this->pageNotFound($response,$data);    
         } 
+
         // get current page language
         if (empty($language) == true) {   
             $language = $this->getPageLanguage($data,false);              
         }
-
+        
         // set current language
         $this->get('page')->setLanguage($language);
-        Session::set('language',$language);  
        
         // current url path     
         $data['current_path'] = $request->getUri()->getPath();
