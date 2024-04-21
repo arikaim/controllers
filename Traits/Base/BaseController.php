@@ -124,8 +124,8 @@ trait BaseController
     /**
      * Set no cache in Cache-Control
      *
-     * @param @return \Psr\Http\Message\ResponseInterface
-     * @return @return \Psr\Http\Message\ResponseInterface
+     * @param \Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function noCacheHeaders($response)
     {
