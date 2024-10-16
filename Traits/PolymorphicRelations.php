@@ -10,12 +10,27 @@
 namespace Arikaim\Core\Controllers\Traits;
 
 use Arikaim\Core\Db\Model;
+use Closure;
 
 /**
  * Relations trait
 */
 trait PolymorphicRelations 
-{        
+{      
+    /**
+     * Before add relation callback
+     *
+     * @var Closure|null
+     */
+    protected $beforeAddRelationCallback = null;
+
+    /**
+     * Before delete relation callback
+     *
+     * @var Closure|null
+     */
+    protected $beforeDeleteRelationCallback = null;
+
     /**
      *  Relations model class
      *  @var string|null
@@ -50,9 +65,18 @@ trait PolymorphicRelations
             return;
         }
 
+        $data = $this->resolveRelationCallback($data,$this->beforeAddRelationCallback,$model);
+
+        //save relation
         $result = $model->saveRelation($id,$type,$relationId);
-      
-        $this->setResponse($result,'relations.add','errors.relations.add');
+        if ($result === false || $result === null) {
+            $this->error('errors.relations.add','Error save relation.');
+            return false;
+        }
+
+        $this
+            ->message('relations.add','Relation saved')
+            ->field('uuid',$result->uuid);
     }
 
     /**
@@ -77,13 +101,34 @@ trait PolymorphicRelations
             $this->error('errors.relations.add','Not valid relation model class.');
             return;
         }
- 
+        
+        $data = $this->resolveRelationCallback($data,$this->beforeDeleteRelationCallback,$model);
+
         if (empty($type) == false && empty($relationId) == false) {
             $result = $model->deleteRelations($id,$type,$relationId);
         } else {
             $result = $model->deleteRelation($uuid);
         }
         
-        $this->setResponse($result,'relations.delete','errors.relations.delete');
+        if ($result === false || $result === null) {
+            $this->error('errors.relations.delete','Error delete relation.');
+            return false;
+        }
+
+        $this
+            ->message('relations.delete','Relation deleted')
+            ->field('uuid',$uuid);        
+    }
+
+    /**
+     * Resolve relation callback
+     *
+     * @param mixed $data
+     * @param Closure|null $callback
+     * @return mixed
+     */
+    private function resolveRelationCallback($data, ?Closure $callback, ?object $model = null)
+    {
+        return (\is_callable($callback) == true) ? $callback($data,$model) : $data;         
     }
 }
