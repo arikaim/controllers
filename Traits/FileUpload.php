@@ -120,6 +120,9 @@ trait FileUpload
         $fieldName = $this->getUplaodFieldName();
         $files = $request->getUploadedFiles();
         $destinationPath = ($relative == true) ? Path::STORAGE_PATH . $path : $path;
+        // create destination dir if not exist
+        File::makeDir($destinationPath);
+
         $uploadedFiles = (\is_object($files[$fieldName]) == true) ? [$files[$fieldName]] : $files[$fieldName];
     
         $result = [];
