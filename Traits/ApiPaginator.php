@@ -9,7 +9,7 @@
 */
 namespace Arikaim\Core\Controllers\Traits;
 
-use Arikaim\Core\Paginator\Paginator;
+use Arikaim\Core\Paginator\PaginatorFactory;
 
 /**
  * Api paginator trait
@@ -24,11 +24,11 @@ trait ApiPaginator
      * @param integer $perPage
      * @return void
      */
-    public function paginate($dataSource, int $page = 1, int $perPage = Paginator::DEFAULT_PER_PAGE): void
+    public function paginate($dataSource, int $page = 1, int $perPage = 25): void
     {
-        $paginator = Paginator::create($dataSource,$page,$perPage);
+        $paginator = PaginatorFactory::create($dataSource,$page,$perPage);
         if ($page > $paginator->getLastPage()) {
-            $paginator = Paginator::create($dataSource,$paginator->getLastPage(),$perPage);
+            $paginator = PaginatorFactory::create($dataSource,$paginator->getLastPage(),$perPage);
         }
         $items = $paginator->getItems();
         $this
