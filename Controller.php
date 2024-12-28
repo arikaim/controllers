@@ -11,8 +11,6 @@ namespace Arikaim\Core\Controllers;
 
 use Psr\Http\Message\ResponseInterface;
 
-use Arikaim\Core\Http\Session;
-
 use Arikaim\Core\Controllers\Traits\Base\BaseController;
 use Arikaim\Core\Controllers\Traits\Base\PageErrors;
 use Arikaim\Core\Controllers\Traits\Base\Multilanguage;
@@ -30,11 +28,17 @@ class Controller
         PageErrors;
 
     /**
+     * Container ref
+     * @var Container|null
+     */
+    protected $container;
+
+    /**
      * Constructor
      *
-     * @param Container $container
+     * @param object|null $container
      */
-    public function __construct($container = null)
+    public function __construct(?object &$container = null)
     {      
         $this->container = $container;
         $this->init();

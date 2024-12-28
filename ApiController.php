@@ -36,11 +36,17 @@ class ApiController
     protected $modelClass = null;
 
     /**
+     * Container ref
+     * @var Container|null
+     */
+    protected $container;
+
+    /**
      * Constructor
      *
-     * @param Container $container
+     * @param object|null $container
      */
-    public function __construct($container = null) 
+    public function __construct(?object &$container = null) 
     {
         $this->container = $container;
         $this->init();

@@ -21,9 +21,9 @@ class ControlPanelApiController extends ApiController implements ControlPanelApi
     /**
      * Constructor
      *
-     * @param Container $container
+     * @param object|null $container
      */
-    public function __construct($container = null) 
+    public function __construct(?object &$container = null) 
     {
         parent::__construct($container);
         
