@@ -18,6 +18,18 @@ use Closure;
 trait Status 
 {        
     /**
+     * onStatusChanged callback
+     * @var Closure|null
+     */
+    protected $onStatusChanged = null;
+
+    /**
+     * onBeforeStatusUpdate callback
+     * @var Closure|null
+     */
+    protected $onBeforeStatusUpdate = null;
+
+    /**
      * Get status changed message
      *
      * @return string
@@ -65,7 +77,7 @@ trait Status
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param Validator $data
-     * @return Psr\Http\Message\ResponseInterface
+     * @return mixed
      */
     public function setStatus($request, $response, $data)
     {
@@ -133,7 +145,7 @@ trait Status
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param Validator $data
-     * @return Psr\Http\Message\ResponseInterface
+     * @return mixed
      */
     public function setDefaultController($request, $response, $data)
     {
@@ -167,7 +179,7 @@ trait Status
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param Validator $data
-     * @return Psr\Http\Message\ResponseInterface
+     * @return mixed
      */
     public function setMultiuserDefaultController($request, $response, $data)
     {
