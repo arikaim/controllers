@@ -119,7 +119,7 @@ class Controller
        
         // current url path     
         $data['current_path'] = $request->getUri()->getPath();
-        
+          
         $component = $this->get('page')->render($pageName,$data,$language);
         $response->getBody()->write($component->getHtmlCode());
 

@@ -10,12 +10,31 @@
 namespace Arikaim\Core\Controllers\Traits;
 
 use Arikaim\Core\Db\Model;
+use Closure;
 
 /**
  * Soft Delete trait
 */
 trait SoftDelete 
 {        
+    /**
+     * Before soft delete
+     *
+     * @var Closure|null
+     */
+    protected $beforeSoftDeleteCallback = null;
+
+    /**
+     * Before soft delete callback
+     *
+     * @param Closure $callback
+     * @return void
+     */
+    protected function onBeforeSoftDelete(Closure $callback): void
+    {
+        $this->beforeSoftDeleteCallback = $callback;
+    }
+
     /**
      * Get soft delete message name
      *
@@ -41,10 +60,10 @@ trait SoftDelete
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
-     * @param Validator $data
-     * @return Psr\Http\Message\ResponseInterface
+     * @param \Arikaim\Core\Validator\Validator $data
+     * @return mixed
      */
-    public function softDeleteController($request, $response, $data)
+    public function softDelete($request, $response, $data)
     {
         $data
             ->addRule('text:min=1|required','uuid')           
@@ -55,29 +74,38 @@ trait SoftDelete
 
         $model = Model::create($this->getModelClass(),$this->getExtensionName());
         if (\is_object($model) == false) {
-            $this->error('errors.class');
+            $this->error('errors.class','Not valid model class');
             return;
         }
-        $model = $model->findById($uuid);
 
-        $result = (\is_object($model) == false) ? false : $model->softDelete();
-            
-        $this->setResponse($result,function() use($uuid) {              
-            $this
-                ->message($this->getSoftDeleteMessage())
-                ->field('uuid',$uuid);                  
-        },'errors.delete');
+        $model = $model->findById($uuid);
+        if ($model == null) {
+            $this->error('errors.id','Not valid id');
+            return;
+        }
+
+        $data = $this->resolveCallback($data,$this->beforeSoftDeleteCallback,$model);
+
+        $result = $model->softDelete();
+        if ($result === false) {
+            $this->error('errors.delete','Error delete');
+            return;
+        }
+
+        $this
+            ->message($this->getSoftDeleteMessage())
+            ->field('uuid',$uuid);  
     }
 
     /**
-     * Restore model
+     * Restore soft deleted model
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
-     * @param Validator $data
-     * @return Psr\Http\Message\ResponseInterface
+     * @param \Arikaim\Core\Validator\Validator $data
+     * @return mixed
      */
-    public function restoreController($request, $response, $data)
+    public function restore($request, $response, $data)
     {
         $data
             ->addRule('text:min=2|required','uuid')           
@@ -86,17 +114,35 @@ trait SoftDelete
         $uuid = $data->get('uuid');
         $model = Model::create($this->getModelClass(),$this->getExtensionName());
         if (\is_object($model) == false) {
-            $this->error('errors.class');
+            $this->error('errors.class','Not valid ');
             return;
         }
 
         $model = $model->findById($uuid);
-        $result = (\is_object($model) == false) ? false : $model->restore();
+        if ($model == null) {
+            $this->error('errors.id','Not valid id');
+            return;
+        }
         
-        $this->setResponse($result,function() use($uuid) {              
-            $this
-                ->message($this->getRestoreMessage())
-                ->field('uuid',$uuid);                  
-        },'errors.restore');
+        $result = $model->restore();
+        if ($result === false) {
+            $this->error('errors.restore','Error restore');
+            return;
+        }
+
+        $this
+            ->message($this->getRestoreMessage())
+            ->field('uuid',$uuid);                         
+    }
+
+    /**
+     * Resolve callback
+     * @param mixed $data
+     * @param mixed $callback
+     * @param mixed $model
+     */
+    private function resolveCallback($data, ?Closure $callback, ?object $model = null)
+    {
+        return (\is_callable($callback) == true) ? $callback($data,$model) : $data;         
     }
 }
