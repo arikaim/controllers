@@ -84,7 +84,7 @@ trait SoftDelete
             return;
         }
 
-        $data = $this->resolveCallback($data,$this->beforeSoftDeleteCallback,$model);
+        $data = $this->softDeleteResolveCallback($data,$this->beforeSoftDeleteCallback,$model);
 
         $result = $model->softDelete();
         if ($result === false) {
@@ -141,7 +141,7 @@ trait SoftDelete
      * @param mixed $callback
      * @param mixed $model
      */
-    private function resolveCallback($data, ?Closure $callback, ?object $model = null)
+    private function softDeleteResolveCallback($data, ?Closure $callback, ?object $model = null)
     {
         return (\is_callable($callback) == true) ? $callback($data,$model) : $data;         
     }
