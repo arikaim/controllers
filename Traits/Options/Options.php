@@ -10,12 +10,20 @@
 namespace Arikaim\Core\Controllers\Traits\Options;
 
 use Arikaim\Core\Db\Model;
+use Closure;
 
 /**
  * Orm options trait
 */
 trait Options
 {   
+
+    /**
+     * Before option update callback
+     * @var null|Closure
+     */
+    protected $onBeforeOptionUpdate;
+
     /**
      * Save options
      *
@@ -35,8 +43,8 @@ trait Options
      * 
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
-     * @param Validator $data
-     * @return Psr\Http\Message\ResponseInterface
+     * @param \Arikaim\Core\Validator\Validator $data
+     * @return mixed
      */
     public function saveController($request, $response, $data)
     {  
@@ -79,22 +87,25 @@ trait Options
      * 
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
-     * @param Validator $data
-     * @return Psr\Http\Message\ResponseInterface
+     * @param \Arikaim\Core\Validator\Validator $data
+     * @return mixed
      */
-    public function saveOptionController($request, $response, $data)
+    public function saveOption($request, $response, $data)
     {  
-        $data->validate(true);
-
-        $referenceId = $data->get('id');
-        $key = $data->get('key',null);
-        $value = $data->get('value',null);
+        $data
+            ->validate(true);
 
         $model = Model::create($this->getModelClass(),$this->getExtensionName());
         if ($model == null) {
             $this->error('errors.id');
             return;
         }
+
+        $data = $this->resolveOptionCallback($data,$this->onBeforeOptionUpdate,$model);
+
+        $referenceId = $data->get('id');
+        $key = $data->get('key',null);
+        $value = $data->get('value',null);
 
         $result = $model->saveOption($referenceId,$key,$value);
         
@@ -103,5 +114,28 @@ trait Options
                 ->message('orm.options.save')
                 ->field('uuid',$model->uuid);                   
         },'errors.options.save');
+    }
+
+    /**
+     * Set before option update callabck
+     * @param \Closure $callback
+     * @return void
+     */
+    protected function onBeforeOptionUpdate(Closure $callback): void
+    {
+        $this->onBeforeOptionUpdate = $callback;
+    }
+
+    /**
+     * Resolve callback
+     *
+     * @param mixed $data
+     * @param Closure|null $callback
+     * @param null|object $model
+     * @return mixed
+     */
+    private function resolveOptionCallback($data, ?Closure $callback, ?object $model = null)
+    {
+        return (\is_callable($callback) == true) ? $callback($data,$model) : $data;         
     }
 }
