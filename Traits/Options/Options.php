@@ -59,12 +59,14 @@ trait Options
         }
 
         $result = $model->saveOptions($referenceId,$options);
-        
-        $this->setResponse($result,function() use($model) {
-            $this
-                ->message('orm.options.save')
-                ->field('uuid',$model->uuid);                   
-        },'errors.options.save');
+        if ($result === false) {
+            $this->error('errors.options.save','Error save options');
+            return false;
+        }
+
+        $this
+            ->message('orm.options.save','Options saved')
+            ->field('uuid',$model->uuid);                   
     }
 
     /**
@@ -108,12 +110,14 @@ trait Options
         $value = $data->get('value',null);
 
         $result = $model->saveOption($referenceId,$key,$value);
-        
-        $this->setResponse($result,function() use($model) {
-            $this
-                ->message('orm.options.save')
-                ->field('uuid',$model->uuid);                   
-        },'errors.options.save');
+        if ($result === false) {
+            $this->error('errors.options.save','Error save option');
+            return false;
+        }
+
+        $this
+            ->message('orm.options.save','Option saved')
+            ->field('uuid',$model->uuid);                   
     }
 
     /**
