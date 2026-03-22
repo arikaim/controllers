@@ -55,17 +55,14 @@ trait UiComponent
         $headerParams = $this->getHeaderParams($request);
         $params = \array_merge($params,$headerParams);
         $params = \array_merge($params,$data->toArray());
-      
+        $type = $params['component_type'] ?? null;
+
         // check access
         if ($this->isAllwoved($params['name']) == false) {
             $this->error('errors.access');
             return $this->getResponse();       
         }
 
-        $language = $this->getPageLanguage($params);    
-        $this->get('page')->setLanguage($language);
-        $type = $params['component_type'] ?? null;
- 
-        return $this->load($data['name'],$params,$language,$type);
+        return $this->load($data['name'],$params,null,$type);
     }
 }

@@ -109,14 +109,6 @@ class Controller
             return $this->pageNotFound($response,$data);    
         } 
 
-        // get current page language
-        if (empty($language) == true) {   
-            $language = $this->getPageLanguage($data,false);              
-        }
-        
-        // set current language
-        $this->get('page')->setLanguage($language);
-       
         // current url path     
         $data['current_path'] = $request->getUri()->getPath();
           
@@ -126,7 +118,7 @@ class Controller
         if ($dispatchEvent === true) {
             $this->container->get('event')->dispatch('core.page.load',[
                 'page_name'    => $pageName,
-                'language'     => $language,
+                'language'     => $this->get('page')->getLanguage(),
                 'query_params' => $request->getQueryParams(),
                 'data'         => $data
             ]);
