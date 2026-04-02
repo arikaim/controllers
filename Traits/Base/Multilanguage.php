@@ -94,7 +94,7 @@ trait Multilanguage
         if (empty($this->messagesComponentName) == true) {
             return;
         }
-        $language = $language ?? $this->getPageLanguage();
+        $language = $language ?? $this->getPageLanguage() ?? $this->get('page')->getLanguage();
 
         $component = ComponentFactory::create(
             $this->messagesComponentName,
@@ -116,11 +116,11 @@ trait Multilanguage
      *
      * @param array $data
      * @param bool $skipSession
-     * @return string
+     * @return string|null
     */
-    public function getPageLanguage($data = [], bool $skipSession = false): string
+    public function getPageLanguage($data = [], bool $skipSession = false): ?string
     {     
-        $language = $data['language'] ?? '';
+        $language = $data['language'] ?? null;
         if (empty($language) == false) {
             return $language;
         }
@@ -134,7 +134,7 @@ trait Multilanguage
             $language = Session::get('language',null);
         }
        
-        return (empty($language) == true) ? $this->getDefaultLanguage() : $language;           
+        return (empty($language) == true) ? null : $language;           
     }
 
     /**

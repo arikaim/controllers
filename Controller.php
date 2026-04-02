@@ -82,7 +82,7 @@ class Controller
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
-     * @param CollectionInterface|array $data   
+     * @param \Arikaim\Core\Collection\Interfaces\CollectionInterface|array $data   
      * @param string|null $pageName     
      * @param boolean $resolveParams 
      * @param string|null $language
@@ -99,7 +99,8 @@ class Controller
     )
     {       
         $this->resolveRouteParams($request);                        
-       
+        $language = $language ?? $this->getPageLanguage($data);
+
         $data = (\is_object($data) == true) ? $data->toArray() : $data;
         if (empty($pageName) == true) {
             $pageName = $data['page_name'] ?? $this->pageName;
